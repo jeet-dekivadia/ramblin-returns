@@ -5,8 +5,9 @@ import { TechCapabilities } from "@/components/tech-capabilities"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { BeeEasterEgg } from "@/components/bee-easter-egg"
-import { UrlSecurity } from "@/components/url-security"
-import { Dashboard } from "@/components/dashboard"
+import { URLChecker } from '@/components/url-checker'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export default function Home() {
   return (
@@ -15,8 +16,7 @@ export default function Home() {
       <Header />
       <HeroSection />
       <ProductTour />
-      <Dashboard />
-      <UrlSecurity />
+      <URLChecker />
       <TechCapabilities />
       <Footer />
     </main>
