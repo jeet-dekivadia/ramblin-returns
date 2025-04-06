@@ -7,27 +7,20 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
 import { Card } from './ui/card';
+import { Analysis } from './dashboard';
 
 type Message = {
   role: 'user' | 'assistant';
   content: string;
 };
 
-interface Analysis {
-  monthlySpending: Array<{ month: string; amount: number }>;
-  spendingByCategory: Array<{ name: string; value: number }>;
-  weeklySpending: Array<{ week: string; amount: number }>;
-  topMerchants: Array<{ name: string; amount: number }>;
-  insights: string[];
-  recurringPayments: Array<{ name: string; amount: number }>;
-}
-
 interface ChatbotProps {
   isFloating?: boolean;
-  analysis?: Analysis;
+  context?: string;
+  analysis?: Analysis | null;
 }
 
-export function Chatbot({ isFloating = false, analysis }: ChatbotProps) {
+export function Chatbot({ isFloating = false, context, analysis }: ChatbotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -43,6 +36,7 @@ export function Chatbot({ isFloating = false, analysis }: ChatbotProps) {
     scrollToBottom();
   }, [messages]);
 
+  // Focus input when chat opens
   useEffect(() => {
     if (isOpen) {
       inputRef.current?.focus();
@@ -59,37 +53,28 @@ export function Chatbot({ isFloating = false, analysis }: ChatbotProps) {
     setIsLoading(true);
 
     try {
+      console.log('Sending request to chat API...');
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [
-            {
-              role: "system",
-              content: `You are a financial analyst assistant for Ramblin' Returns. Help users understand their financial data and provide specific insights.
-              ${analysis ? `\nCurrent analysis data:
-              - Monthly spending trends: ${JSON.stringify(analysis.monthlySpending)}
-              - Top spending categories: ${JSON.stringify(analysis.spendingByCategory)}
-              - Weekly spending: ${JSON.stringify(analysis.weeklySpending)}
-              - Top merchants: ${JSON.stringify(analysis.topMerchants)}
-              - Key insights: ${JSON.stringify(analysis.insights)}
-              - Recurring payments: ${JSON.stringify(analysis.recurringPayments)}
-              Please use this data to provide specific, data-driven responses.` : ''}`
-            },
-            ...messages.map(msg => ({ role: msg.role, content: msg.content })),
-            { role: 'user', content: userMessage }
-          ],
+          messages: [...messages, { role: 'user', content: userMessage }],
         }),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error(errorText || 'Failed to get response');
       }
 
       const content = await response.text();
+      console.log('Response content:', content);
       setMessages(prev => [...prev, { role: 'assistant', content }]);
     } catch (error) {
       console.error('Error:', error);

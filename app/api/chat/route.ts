@@ -33,6 +33,8 @@ export async function POST(req: Request) {
       return new Response('Invalid messages format', { status: 400 });
     }
 
+    console.log('Sending request to OpenAI with messages:', JSON.stringify(messages, null, 2));
+
     let completion;
     try {
       completion = await openai.chat.completions.create({
@@ -41,6 +43,7 @@ export async function POST(req: Request) {
         temperature: 0.7,
         max_tokens: 1000,
       });
+      console.log('OpenAI response:', JSON.stringify(completion, null, 2));
     } catch (openaiError) {
       console.error('OpenAI API error:', openaiError);
       return new Response(
@@ -50,6 +53,8 @@ export async function POST(req: Request) {
     }
 
     const responseContent = completion.choices[0]?.message?.content;
+    console.log('Response content:', responseContent);
+
     if (!responseContent) {
       return new Response('Empty response from OpenAI', { status: 500 });
     }
