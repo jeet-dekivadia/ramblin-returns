@@ -12,65 +12,77 @@ import {
   Legend, ResponsiveContainer, Cell
 } from 'recharts';
 
-// Hardcoded data
+// Sample data for visualization
 const monthlySpending = [
-  { month: 'Jan', amount: 4500 },
-  { month: 'Feb', amount: 5200 },
-  { month: 'Mar', amount: 4800 },
+  { month: 'Jan', amount: 1200 },
+  { month: 'Feb', amount: 1500 },
+  { month: 'Mar', amount: 1800 },
+  { month: 'Apr', amount: 1600 },
+  { month: 'May', amount: 2000 },
+  { month: 'Jun', amount: 2200 }
 ];
 
 const spendingByCategory = [
-  { name: 'Food & Dining', value: 1200 },
-  { name: 'Shopping', value: 800 },
-  { name: 'Transportation', value: 600 },
-  { name: 'Entertainment', value: 400 },
-  { name: 'Bills & Utilities', value: 1000 },
-  { name: 'Others', value: 800 },
+  { name: 'Food & Dining', value: 800 },
+  { name: 'Transportation', value: 400 },
+  { name: 'Shopping', value: 600 },
+  { name: 'Entertainment', value: 300 },
+  { name: 'Bills', value: 500 }
 ];
 
 const weeklySpending = [
-  { week: 'Week 1', amount: 1200 },
-  { week: 'Week 2', amount: 1500 },
-  { week: 'Week 3', amount: 1100 },
-  { week: 'Week 4', amount: 1400 },
+  { week: 'Week 1', amount: 400 },
+  { week: 'Week 2', amount: 450 },
+  { week: 'Week 3', amount: 500 },
+  { week: 'Week 4', amount: 550 }
 ];
 
 const topMerchants = [
-  { name: 'Starbucks', amount: 78 },
-  { name: 'Amazon', amount: 250 },
-  { name: 'Uber', amount: 120 },
+  { name: 'Amazon', amount: 300 },
+  { name: 'Uber', amount: 200 },
   { name: 'Netflix', amount: 15 },
   { name: 'Spotify', amount: 10 },
+  { name: 'Gym', amount: 50 }
 ];
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
 const investmentRecommendations = [
   {
-    merchant: 'Starbucks',
-    amount: 78,
-    stock: 'SBUX',
-    currentPrice: 95.23,
-    recommendation: 'Buy',
-    reason: 'Based on your monthly spending pattern'
-  },
-  {
     merchant: 'Amazon',
-    amount: 250,
+    amount: 300,
     stock: 'AMZN',
-    currentPrice: 175.45,
+    currentPrice: 180.50,
     recommendation: 'Buy',
-    reason: 'Based on your monthly spending pattern'
+    reason: 'Strong market position and consistent growth'
   },
   {
-    merchant: 'Netflix',
-    amount: 15,
-    stock: 'NFLX',
-    currentPrice: 485.67,
+    merchant: 'Uber',
+    amount: 200,
+    stock: 'UBER',
+    currentPrice: 45.20,
     recommendation: 'Hold',
-    reason: 'Consider investing more for better returns'
+    reason: 'Stable performance in ride-sharing market'
   }
 ];
+
+const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+
+// Analysis data structure
+const analysis = {
+  monthlySpending,
+  spendingByCategory,
+  weeklySpending,
+  topMerchants,
+  insights: [
+    'Food & Dining is your largest expense category',
+    'You spend more on weekends',
+    'Transportation costs have increased by 15%'
+  ],
+  recurringPayments: [
+    { name: 'Netflix', amount: 15 },
+    { name: 'Spotify', amount: 10 },
+    { name: 'Gym Membership', amount: 50 }
+  ]
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -364,24 +376,7 @@ export default function Dashboard() {
           </div>
 
           <div className="lg:col-span-1">
-            <Chatbot 
-              analysis={{
-                monthlySpending,
-                spendingByCategory,
-                weeklySpending,
-                topMerchants,
-                insights: [
-                  'Food & Dining is your largest expense category',
-                  'You spend more on weekends',
-                  'Transportation costs have increased by 15%'
-                ],
-                recurringPayments: [
-                  { name: 'Netflix', amount: 15 },
-                  { name: 'Spotify', amount: 10 },
-                  { name: 'Gym Membership', amount: 50 }
-                ]
-              }}
-            />
+            <Chatbot analysis={analysis} />
           </div>
         </div>
       </div>
