@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PDFDocument } from 'pdf-lib';
+import pdfParse from 'pdf-parse';
 
 export async function POST(req: Request) {
   try {
@@ -14,16 +14,10 @@ export async function POST(req: Request) {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const pdfDoc = await PDFDocument.load(arrayBuffer);
-    const pages = pdfDoc.getPages();
-    let text = '';
-
-    for (const page of pages) {
-      const content = await page.getTextContent();
-      text += content + '\n';
-    }
-
-    return NextResponse.json({ text });
+    const buffer = Buffer.from(arrayBuffer);
+    const data = await pdfParse(buffer);
+    
+    return NextResponse.json({ text: data.text });
   } catch (error) {
     console.error('Error extracting PDF:', error);
     return NextResponse.json(
