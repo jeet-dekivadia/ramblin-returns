@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { BeeEasterEgg } from "@/components/bee-easter-egg"
 import { UrlSecurity } from "@/components/url-security"
+import { Dashboard } from "@/components/dashboard"
 
 export default function Home() {
   return (
@@ -14,7 +15,7 @@ export default function Home() {
       <Header />
       <HeroSection />
       <ProductTour />
-      <DashboardPreview />
+      <Dashboard />
       <UrlSecurity />
       <TechCapabilities />
       <Footer />
