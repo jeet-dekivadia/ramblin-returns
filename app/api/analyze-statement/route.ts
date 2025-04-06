@@ -49,87 +49,53 @@ export async function POST(req: Request) {
       return new Response('No valid text provided', { status: 400 });
     }
 
-    // First, analyze the statement structure
     try {
-      const structureCompletion = await openai.chat.completions.create({
+      // Single API call for both validation and analysis
+      const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini-2024-07-18",
         messages: [
           {
             role: "system",
-            content: "You are a financial data analyst. First, determine if the provided text appears to be a valid bank statement. Return ONLY a JSON object with this exact format, nothing else: { \"isValid\": boolean, \"reason\": string }"
+            content: `You are a financial data analyst. Analyze the provided text and return a JSON object with this exact format:
+            {
+              "isValid": boolean,
+              "reason": string,
+              "analysis": {
+                "spendingByCategory": [{ "category": string, "amount": number }],
+                "monthlySpending": [{ "month": string, "amount": number }],
+                "weeklyAverages": [{ "week": string, "amount": number }],
+                "topMerchants": [{ "merchant": string, "amount": number, "frequency": number }],
+                "recurringPayments": [{ "merchant": string, "amount": number, "frequency": string }],
+                "incomeVsExpenses": { "totalIncome": number, "totalExpenses": number, "savings": number },
+                "insights": string[],
+                "savingsSuggestions": string[]
+              },
+              "companies": string[]
+            }
+
+            If the text is not a valid bank statement, set isValid to false with an appropriate reason and leave other fields empty.
+            If it is valid, set isValid to true, provide the analysis, and include publicly traded companies from the merchants in the companies array.`
           },
           {
             role: "user",
             content: text
           }
         ],
-        temperature: 0.3,
-        max_tokens: 500,
+        temperature: 0.5,
+        max_tokens: 1000,
         response_format: { type: "json_object" }
       });
 
-      const structureCheck = parseOpenAIResponse(structureCompletion.choices[0]?.message?.content);
+      const result = parseOpenAIResponse(completion.choices[0]?.message?.content);
       
-      if (!structureCheck.isValid) {
-        console.error('Invalid bank statement structure:', structureCheck.reason);
-        return new Response(`Invalid bank statement: ${structureCheck.reason}`, { status: 400 });
+      if (!result.isValid) {
+        console.error('Invalid bank statement structure:', result.reason);
+        return new Response(`Invalid bank statement: ${result.reason}`, { status: 400 });
       }
 
-      // Analyze spending patterns and categories
-      const analysisCompletion = await openai.chat.completions.create({
-        model: "gpt-4o-mini-2024-07-18",
-        messages: [
-          {
-            role: "system",
-            content: `You are a financial analyst. Analyze the bank statement and provide a detailed analysis. Return ONLY a JSON object with this exact format, nothing else:
-            {
-              "spendingByCategory": [{ "category": string, "amount": number }],
-              "monthlySpending": [{ "month": string, "amount": number }],
-              "weeklyAverages": [{ "week": string, "amount": number }],
-              "topMerchants": [{ "merchant": string, "amount": number, "frequency": number }],
-              "recurringPayments": [{ "merchant": string, "amount": number, "frequency": string }],
-              "incomeVsExpenses": { "totalIncome": number, "totalExpenses": number, "savings": number },
-              "transactionPatterns": [{ "pattern": string, "frequency": number }],
-              "insights": string[],
-              "savingsSuggestions": string[]
-            }`
-          },
-          {
-            role: "user",
-            content: text
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1500,
-        response_format: { type: "json_object" }
-      });
-
-      const analysis = parseOpenAIResponse(analysisCompletion.choices[0]?.message?.content);
-
-      // Extract merchants for investment recommendations
-      const merchantCompletion = await openai.chat.completions.create({
-        model: "gpt-4o-mini-2024-07-18",
-        messages: [
-          {
-            role: "system",
-            content: "Extract a list of merchants from the bank statement that are likely to be publicly traded companies. Return ONLY a JSON object with this exact format, nothing else: { \"companies\": string[] }"
-          },
-          {
-            role: "user",
-            content: text
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 500,
-        response_format: { type: "json_object" }
-      });
-
-      const merchantData = parseOpenAIResponse(merchantCompletion.choices[0]?.message?.content);
-      const merchants = Array.isArray(merchantData) ? merchantData : merchantData.companies || [];
-
       return NextResponse.json({
-        analysis,
-        merchants
+        analysis: result.analysis,
+        merchants: result.companies
       });
     } catch (apiError) {
       console.error('OpenAI API error:', apiError);
