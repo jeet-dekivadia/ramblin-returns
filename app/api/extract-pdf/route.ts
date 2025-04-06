@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import pdfParse from 'pdf-parse';
+import PDFParser from 'pdf2json';
 
 export async function POST(req: Request) {
   try {
@@ -13,19 +13,34 @@ export async function POST(req: Request) {
       );
     }
 
-    // Convert File to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
-    
-    // Convert ArrayBuffer to Buffer
     const buffer = Buffer.from(arrayBuffer);
-    
-    // Parse PDF
-    const data = await pdfParse(buffer, {
-      max: 0, // No limit on number of pages
-      pagerender: null // Use default renderer
+
+    return new Promise((resolve, reject) => {
+      const pdfParser = new PDFParser();
+      let text = '';
+
+      pdfParser.on('pdfParser_dataReady', (pdfData) => {
+        try {
+          // Extract text from all pages
+          pdfData.Pages.forEach((page) => {
+            page.Texts.forEach((textObj) => {
+              text += decodeURIComponent(textObj.R[0].T) + ' ';
+            });
+          });
+          resolve(NextResponse.json({ text: text.trim() }));
+        } catch (error) {
+          reject(error);
+        }
+      });
+
+      pdfParser.on('pdfParser_dataError', (error) => {
+        reject(error);
+      });
+
+      // Parse the PDF buffer
+      pdfParser.parseBuffer(buffer);
     });
-    
-    return NextResponse.json({ text: data.text });
   } catch (error) {
     console.error('Error extracting PDF:', error);
     return NextResponse.json(
