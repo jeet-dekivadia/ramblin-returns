@@ -16,7 +16,6 @@ export async function POST(req: Request) {
     }
 
     const { text } = await req.json();
-    console.log('Received text length:', text?.length || 0);
     
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       console.error('Invalid or empty text provided');
@@ -33,7 +32,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: "You are a financial data analyst. First, determine if the provided text appears to be a valid bank statement. Look for typical bank statement elements like transaction dates, amounts, balances, etc. Respond with a JSON object containing { isValid: boolean, reason: string }"
+            content: "You are a financial data analyst. First, determine if the provided text appears to be a valid bank statement. Return a JSON object (without markdown formatting or code blocks) containing { isValid: boolean, reason: string }"
           },
           {
             role: "user",
@@ -42,10 +41,15 @@ export async function POST(req: Request) {
         ],
         temperature: 0.3,
         max_tokens: 500,
+        response_format: { type: "json_object" }
       });
 
-      console.log('Structure check response:', structureCompletion.choices[0]?.message?.content);
-      const structureCheck = JSON.parse(structureCompletion.choices[0]?.message?.content || '{"isValid": false, "reason": "Could not analyze text"}');
+      const structureResponse = structureCompletion.choices[0]?.message?.content;
+      if (!structureResponse) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      const structureCheck = JSON.parse(structureResponse);
       
       if (!structureCheck.isValid) {
         console.error('Invalid bank statement structure:', structureCheck.reason);
@@ -61,7 +65,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: `You are a financial analyst. Analyze the bank statement and provide a structured analysis in JSON format with the following structure:
+            content: `You are a financial analyst. Analyze the bank statement and provide a JSON object (without markdown formatting or code blocks) with the following structure:
             {
               "spendingByCategory": [{ "category": string, "amount": number }],
               "monthlySpending": [{ "month": string, "amount": number }],
@@ -77,10 +81,15 @@ export async function POST(req: Request) {
         ],
         temperature: 0.7,
         max_tokens: 1000,
+        response_format: { type: "json_object" }
       });
 
-      console.log('Analysis response:', analysisCompletion.choices[0]?.message?.content);
-      const analysis = JSON.parse(analysisCompletion.choices[0]?.message?.content || '{}');
+      const analysisResponse = analysisCompletion.choices[0]?.message?.content;
+      if (!analysisResponse) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      const analysis = JSON.parse(analysisResponse);
 
       // Extract merchants for investment recommendations
       const merchantCompletion = await openai.chat.completions.create({
@@ -88,7 +97,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: "Extract a list of merchants from the bank statement that are likely to be publicly traded companies. Return a JSON array of company names."
+            content: "Extract a list of merchants from the bank statement that are likely to be publicly traded companies. Return a JSON array (without markdown formatting or code blocks) of company names."
           },
           {
             role: "user",
@@ -97,14 +106,19 @@ export async function POST(req: Request) {
         ],
         temperature: 0.3,
         max_tokens: 500,
+        response_format: { type: "json_object" }
       });
 
-      console.log('Merchant extraction response:', merchantCompletion.choices[0]?.message?.content);
-      const merchants = JSON.parse(merchantCompletion.choices[0]?.message?.content || '[]');
+      const merchantResponse = merchantCompletion.choices[0]?.message?.content;
+      if (!merchantResponse) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      const merchants = JSON.parse(merchantResponse);
 
       return NextResponse.json({
         analysis,
-        merchants
+        merchants: Array.isArray(merchants) ? merchants : merchants.companies || []
       });
     } catch (apiError) {
       console.error('OpenAI API error:', apiError);
@@ -116,10 +130,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Error analyzing bank statement:', error);
     return NextResponse.json(
-      { 
-        error: 'Failed to analyze bank statement: ' + (error instanceof Error ? error.message : 'Unknown error'),
-        details: error instanceof Error ? error.stack : undefined
-      },
+      { error: 'Failed to analyze bank statement: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     );
   }
