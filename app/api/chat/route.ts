@@ -42,10 +42,18 @@ export async function POST(req: Request) {
         messages,
         temperature: 0.7,
         max_tokens: 1000,
+        response_format: { type: "text" } // Force text response
       });
       console.log('OpenAI response:', JSON.stringify(completion, null, 2));
     } catch (openaiError) {
       console.error('OpenAI API error:', openaiError);
+      // Check if it's an invalid JSON error
+      if (openaiError instanceof Error && openaiError.message.includes('Invalid JSON')) {
+        return new Response(
+          'I apologize, but I encountered an error processing your request. Please try again with a different question.',
+          { status: 500 }
+        );
+      }
       return new Response(
         'OpenAI API error: ' + (openaiError instanceof Error ? openaiError.message : 'Unknown error'),
         { status: 500 }
