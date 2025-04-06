@@ -43,13 +43,13 @@ export function Chatbot({ isFloating = false, context, analysis }: ChatbotProps)
     }
   }, [isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim()) return;
 
-    const userMessage: Message = { role: 'user', content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    const userMessage = input.trim();
     setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
     try {
@@ -59,41 +59,22 @@ export function Chatbot({ isFloating = false, context, analysis }: ChatbotProps)
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [
-            {
-              role: "system",
-              content: `You are a financial analyst assistant for Ramblin' Returns. Help users understand their financial data and provide specific insights.
-              ${context || ''}
-              ${analysis ? `\nCurrent analysis data:
-              - Monthly spending trends: ${JSON.stringify(analysis.monthlySpending)}
-              - Top spending categories: ${JSON.stringify(analysis.spendingByCategory)}
-              - Income vs Expenses: ${JSON.stringify(analysis.incomeVsExpenses)}
-              - Key insights: ${JSON.stringify(analysis.insights)}
-              - Recurring payments: ${JSON.stringify(analysis.recurringPayments)}
-              Please use this data to provide specific, data-driven responses.` : ''}`
-            },
-            ...messages.map((msg) => ({ role: msg.role, content: msg.content })),
-            { role: 'user', content: input }
-          ],
+          messages: [...messages, { role: 'user', content: userMessage }],
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to get response');
       }
 
-      const data = await response.json();
-      const formattedResponse = data.content.replace(/\n/g, '<br>');
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: formattedResponse
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+      const content = await response.text();
+      setMessages(prev => [...prev, { role: 'assistant', content }]);
     } catch (error) {
-      console.error('Error getting response:', error);
-      setMessages((prev) => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, there was an error processing your request. Please try again.'
+      console.error('Error:', error);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
       }]);
     } finally {
       setIsLoading(false);

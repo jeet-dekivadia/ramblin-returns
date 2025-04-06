@@ -24,19 +24,13 @@ export async function POST(req: Request) {
   try {
     if (!process.env.OPENAI_API_KEY) {
       console.error('OpenAI API key is not configured');
-      return NextResponse.json(
-        { error: 'OpenAI API key is not configured' },
-        { status: 500 }
-      );
+      return new Response('OpenAI API key is not configured', { status: 500 });
     }
 
     const { messages } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json(
-        { error: 'Invalid messages format' },
-        { status: 400 }
-      );
+      return new Response('Invalid messages format', { status: 400 });
     }
 
     let completion;
@@ -49,40 +43,28 @@ export async function POST(req: Request) {
       });
     } catch (openaiError) {
       console.error('OpenAI API error:', openaiError);
-      // Ensure we return a properly formatted JSON response even for errors
-      return NextResponse.json(
-        { error: 'OpenAI API error: ' + (openaiError instanceof Error ? openaiError.message : 'Unknown error') },
+      return new Response(
+        'OpenAI API error: ' + (openaiError instanceof Error ? openaiError.message : 'Unknown error'),
         { status: 500 }
       );
     }
 
     const responseContent = completion.choices[0]?.message?.content;
     if (!responseContent) {
-      return NextResponse.json(
-        { error: 'Empty response from OpenAI' },
-        { status: 500 }
-      );
+      return new Response('Empty response from OpenAI', { status: 500 });
     }
 
-    try {
-      const cleanedContent = cleanResponse(responseContent);
-      
-      // Always return a properly formatted JSON response
-      return NextResponse.json({
-        content: cleanedContent
-      });
-    } catch (error) {
-      console.error('Error processing response:', error);
-      return NextResponse.json(
-        { error: 'Failed to process response: ' + (error instanceof Error ? error.message : 'Unknown error') },
-        { status: 500 }
-      );
-    }
+    // Return the raw response content
+    return new Response(responseContent, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
   } catch (error) {
     console.error('Error in chat API:', error);
-    // Ensure we return a properly formatted JSON response for any unhandled errors
-    return NextResponse.json(
-      { error: 'Failed to process request: ' + (error instanceof Error ? error.message : 'Unknown error') },
+    return new Response(
+      'Failed to process request: ' + (error instanceof Error ? error.message : 'Unknown error'),
       { status: 500 }
     );
   }
