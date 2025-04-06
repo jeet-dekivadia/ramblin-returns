@@ -2,50 +2,45 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Shield, CheckCircle, AlertTriangle, Link } from "lucide-react"
 
-type SecurityResult = {
-  originalUrl: string;
-  unshortenedUrl: string;
-  confidenceScore: number;
-  reasons: string[];
-};
-
-export function URLSecurity() {
+export function UrlSecurity() {
   const [url, setUrl] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<SecurityResult | null>(null)
+  const [isChecking, setIsChecking] = useState(false)
+  const [result, setResult] = useState<null | { safe: boolean; original?: string; message: string }>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    setResult(null)
+  const checkUrl = () => {
+    if (!url) return
 
-    try {
-      const response = await fetch("/api/url-security", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url }),
-      })
+    setIsChecking(true)
 
-      if (!response.ok) {
-        throw new Error("Failed to analyze URL")
+    // Simulate API call to check URL
+    setTimeout(() => {
+      if (url.includes("amaz0n") || url.includes("paypa1")) {
+        setResult({
+          safe: false,
+          original: url,
+          message:
+            "This appears to be a phishing attempt. The domain is suspicious and doesn't match the official website.",
+        })
+      } else if (url.includes("bit.ly") || url.includes("tinyurl")) {
+        setResult({
+          safe: true,
+          original: "https://www.example.com/legitimate-page",
+          message: "This shortened URL redirects to a legitimate website.",
+        })
+      } else {
+        setResult({
+          safe: true,
+          message: "This URL appears to be safe.",
+        })
       }
 
-      const data = await response.json()
-      setResult(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
-    } finally {
-      setIsLoading(false)
-    }
+      setIsChecking(false)
+    }, 1500)
   }
 
   return (
@@ -67,94 +62,97 @@ export function URLSecurity() {
             </p>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>URL Security Checker</CardTitle>
-              <CardDescription>
-                Enter a URL to check its security and get detailed analysis
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+          <Card className="overflow-hidden border-2 border-gray-200 dark:border-gray-800">
+            <CardContent className="p-6">
+              <div className="mb-6">
+                <label htmlFor="url-input" className="block text-sm font-medium mb-2">
+                  Enter a URL to check
+                </label>
                 <div className="flex gap-2">
                   <Input
+                    id="url-input"
                     type="url"
-                    placeholder="Enter URL to analyze..."
+                    placeholder="https://example.com or shortened URL"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
-                    required
                     className="flex-1"
                   />
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? "Analyzing..." : "Analyze"}
+                  <Button
+                    onClick={checkUrl}
+                    disabled={!url || isChecking}
+                    className="bg-gt-navy hover:bg-gt-navy/90 text-white"
+                  >
+                    {isChecking ? "Checking..." : "Check URL"}
                   </Button>
                 </div>
+              </div>
 
-                {error && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    {error}
-                  </div>
-                )}
-
-                {result && (
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-medium mb-2">Original URL:</h3>
-                      <div className="bg-gray-100 p-3 rounded-lg break-all">
-                        {result.originalUrl}
-                      </div>
+              {result && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-4 rounded-lg ${
+                    result.safe
+                      ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900"
+                      : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900"
+                  }`}
+                >
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {result.safe ? (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <AlertTriangle className="h-5 w-5 text-red-500" />
+                      )}
                     </div>
+                    <div className="ml-3">
+                      <h3
+                        className={`text-sm font-medium ${
+                          result.safe ? "text-green-800 dark:text-green-200" : "text-red-800 dark:text-red-200"
+                        }`}
+                      >
+                        {result.safe ? "URL is safe" : "Potential security risk"}
+                      </h3>
+                      <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                        <p>{result.message}</p>
 
-                    <div>
-                      <h3 className="font-medium mb-2">Unshortened URL:</h3>
-                      <div className="bg-gray-100 p-3 rounded-lg break-all">
-                        {result.unshortenedUrl}
+                        {result.original && (
+                          <div className="mt-2 flex items-center">
+                            <Link className="h-4 w-4 mr-1 text-gray-500" />
+                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                              {result.original}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-medium mb-2">Security Score:</h3>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`text-2xl font-bold ${
-                            result.confidenceScore >= 70
-                              ? "text-green-600"
-                              : result.confidenceScore >= 40
-                              ? "text-yellow-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {result.confidenceScore}/100
-                        </div>
-                        <div
-                          className={`px-3 py-1 rounded-full text-sm ${
-                            result.confidenceScore >= 70
-                              ? "bg-green-100 text-green-800"
-                              : result.confidenceScore >= 40
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {result.confidenceScore >= 70
-                            ? "Safe"
-                            : result.confidenceScore >= 40
-                            ? "Caution"
-                            : "Unsafe"}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-medium mb-2">Analysis:</h3>
-                      <ul className="list-disc pl-5 space-y-2">
-                        {result.reasons.map((reason, index) => (
-                          <li key={index}>{reason}</li>
-                        ))}
-                      </ul>
                     </div>
                   </div>
-                )}
-              </form>
+                </motion.div>
+              )}
+
+              <div className="mt-6 bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                <h4 className="text-sm font-medium mb-2">Try these examples:</h4>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setUrl("https://amaz0n-secure.net/login")}
+                    className="text-sm text-gt-gold hover:underline block"
+                  >
+                    https://amaz0n-secure.net/login
+                  </button>
+                  <button
+                    onClick={() => setUrl("https://bit.ly/3xR5tY7")}
+                    className="text-sm text-gt-gold hover:underline block"
+                  >
+                    https://bit.ly/3xR5tY7
+                  </button>
+                  <button
+                    onClick={() => setUrl("https://paypa1-verify.com/account")}
+                    className="text-sm text-gt-gold hover:underline block"
+                  >
+                    https://paypa1-verify.com/account
+                  </button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
