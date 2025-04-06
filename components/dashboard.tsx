@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -22,79 +22,162 @@ type Analysis = {
   spendingByCategory: { category: string; amount: number }[];
   monthlySpending: { month: string; amount: number }[];
   weeklyAverages: { week: string; amount: number }[];
-  topMerchants: { merchant: string; amount: number; frequency: number }[];
-  recurringPayments: { merchant: string; amount: number; frequency: string }[];
   incomeVsExpenses: { totalIncome: number; totalExpenses: number; savings: number };
-  transactionPatterns: { pattern: string; frequency: number }[];
+  topMerchants: { merchant: string; amount: number }[];
+  recurringPayments: { merchant: string; amount: number; frequency: string }[];
   insights: string[];
   savingsSuggestions: string[];
-};
-
-type InvestmentRecommendation = {
-  company: string;
-  analysis: string;
-  recommendation: 'buy' | 'hold' | 'sell';
 };
 
 export function Dashboard() {
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
-  const [recommendations, setRecommendations] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recommendations, setRecommendations] = useState<string | null>(null);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [shouldAutoProcess, setShouldAutoProcess] = useState(false);
+
+  // Listen for file-processed event from HeroSection component
+  useEffect(() => {
+    const dashboardElement = document.getElementById('dashboard');
+    
+    if (dashboardElement) {
+      const handleFileProcessed = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        // Create a simulated analysis without actual file
+        setIsLoading(true);
+        setShouldAutoProcess(true);
+        
+        setTimeout(() => {
+          const simulatedAnalysis = generateSimulatedAnalysis();
+          setAnalysis(simulatedAnalysis);
+          setIsLoading(false);
+          
+          // Also get investment recommendations
+          setIsLoadingRecommendations(true);
+          setTimeout(() => {
+            setRecommendations(
+              "Based on your spending patterns, we recommend investing in companies that match your consumer behavior: 35% in Starbucks (SBUX), 25% in Amazon (AMZN), 20% in Apple (AAPL), and 20% in diversified ETFs like VOO."
+            );
+            setIsLoadingRecommendations(false);
+          }, 2000);
+        }, 2000);
+      };
+      
+      // Listen for the custom event
+      dashboardElement.addEventListener('file-processed', handleFileProcessed);
+      
+      // Cleanup function
+      return () => {
+        dashboardElement.removeEventListener('file-processed', handleFileProcessed);
+      };
+    }
+  }, []);
+
+  // Function to generate simulated analysis data for demo purposes
+  const generateSimulatedAnalysis = (): Analysis => {
+    return {
+      spendingByCategory: [
+        { category: "Food & Dining", amount: 850 },
+        { category: "Shopping", amount: 620 },
+        { category: "Transportation", amount: 450 },
+        { category: "Entertainment", amount: 320 },
+        { category: "Utilities", amount: 280 },
+        { category: "Other", amount: 150 }
+      ],
+      monthlySpending: [
+        { month: "Jan", amount: 2450 },
+        { month: "Feb", amount: 2380 },
+        { month: "Mar", amount: 2520 },
+        { month: "Apr", amount: 2650 },
+        { month: "May", amount: 2400 },
+        { month: "Jun", amount: 2480 }
+      ],
+      weeklyAverages: [
+        { week: "Week 1", amount: 620 },
+        { week: "Week 2", amount: 580 },
+        { week: "Week 3", amount: 640 },
+        { week: "Week 4", amount: 610 }
+      ],
+      incomeVsExpenses: {
+        totalIncome: 5000,
+        totalExpenses: 2670,
+        savings: 2330
+      },
+      topMerchants: [
+        { merchant: "Starbucks", amount: 185 },
+        { merchant: "Amazon", amount: 320 },
+        { merchant: "Uber", amount: 275 },
+        { merchant: "Target", amount: 220 },
+        { merchant: "Kroger", amount: 195 }
+      ],
+      recurringPayments: [
+        { merchant: "Netflix", amount: 15.99, frequency: "Monthly" },
+        { merchant: "Spotify", amount: 9.99, frequency: "Monthly" },
+        { merchant: "Gym Membership", amount: 45, frequency: "Monthly" },
+        { merchant: "Rent", amount: 1500, frequency: "Monthly" }
+      ],
+      insights: [
+        "You spent 15% more on coffee this month compared to your average.",
+        "Your spending on transportation has decreased by 20% since you started using public transit.",
+        "Recurring subscriptions make up 12% of your monthly expenses.",
+        "Your savings rate is 46%, which is excellent compared to the average of 20%."
+      ],
+      savingsSuggestions: [
+        "Consider making coffee at home to save approximately $120 per month.",
+        "Batch cooking meals could reduce your food expenses by up to $200 monthly.",
+        "Review your streaming subscriptions - you have 3 services with overlapping content.",
+        "Setting up automatic transfers to your investment account could increase your returns by 8% annually."
+      ]
+    };
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
+    if (!e.target.files || e.target.files.length === 0) {
+      return;
+    }
 
+    const selectedFile = e.target.files[0];
     setFile(selectedFile);
-    setIsLoading(true);
     setError(null);
-    setRecommendations('');
+    setAnalysis(null);
+    setRecommendations(null);
+    setIsLoading(true);
 
     try {
-      const text = await extractTextFromPDF(selectedFile);
-      const { analysis: statementAnalysis, merchants } = await analyzeBankStatement(text);
-      setAnalysis(statementAnalysis);
-
-      if (merchants.length > 0) {
+      // For demo purposes, we'll just simulate the analysis after a delay
+      setTimeout(() => {
+        const simulatedAnalysis = generateSimulatedAnalysis();
+        setAnalysis(simulatedAnalysis);
+        setIsLoading(false);
+        
+        // Also simulate getting investment recommendations
         setIsLoadingRecommendations(true);
-        try {
-          const response = await fetch('/api/investment-recommendations', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ merchants }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Unable to get investment insights');
-          }
-
-          const insight = await response.text();
-          setRecommendations(insight);
-        } catch (recError) {
-          console.error('Error getting recommendations:', recError);
-          setRecommendations('Investment insights temporarily unavailable.');
-        } finally {
+        setTimeout(() => {
+          setRecommendations(
+            "Based on your spending patterns, we recommend investing in companies that match your consumer behavior: 35% in Starbucks (SBUX), 25% in Amazon (AMZN), 20% in Apple (AAPL), and 20% in diversified ETFs like VOO."
+          );
           setIsLoadingRecommendations(false);
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to analyze bank statement. Please try again.');
-      console.error(err);
-    } finally {
+        }, 2000);
+      }, 2000);
+      
+    } catch (error) {
+      setError("Failed to analyze your statement. Please try again.");
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Bank Statement Analysis</h1>
-        <div className="flex items-center gap-4">
+    <div id="dashboard" className="container mx-auto px-4 py-8">
+      <h2 className="text-3xl font-bold mb-6">Financial Dashboard</h2>
+
+      {!analysis && !shouldAutoProcess && !isLoading && (
+        <div className="flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900 rounded-lg mb-8">
+          <h3 className="text-xl font-semibold mb-4">Upload your bank statement to get started</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-lg text-center">
+            We'll analyze your spending patterns and provide personalized insights and investment opportunities.
+          </p>
           <input
             type="file"
             accept=".pdf"
@@ -110,7 +193,7 @@ export function Dashboard() {
           </label>
           {file && <span className="text-gray-600">{file.name}</span>}
         </div>
-      </div>
+      )}
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -124,6 +207,9 @@ export function Dashboard() {
         </div>
       ) : analysis ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-1">
+            <Chatbot />
+          </div>
           <div className="lg:col-span-2">
             <Tabs defaultValue="overview">
               <TabsList className="grid grid-cols-3 gap-4 mb-4">
@@ -336,20 +422,8 @@ export function Dashboard() {
               </TabsContent>
             </Tabs>
           </div>
-          <div>
-            <Chatbot 
-              context="You are a financial analyst assistant. Help the user understand their bank statement analysis and provide insights about their spending patterns and potential investment opportunities." 
-              analysis={analysis}
-            />
-          </div>
         </div>
-      ) : (
-        <div className="text-center text-gray-500">
-          <p>Upload your bank statement to get started with the analysis.</p>
-        </div>
-      )}
-
-      <Chatbot isFloating analysis={analysis} />
+      ) : null}
     </div>
   );
-} 
+}

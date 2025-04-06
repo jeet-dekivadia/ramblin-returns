@@ -411,7 +411,7 @@ export function ProductTour() {
                 <Card className="overflow-hidden">
                   <CardContent className="p-6">
                     <h4 className="text-lg font-semibold mb-4">AI Coach Insights</h4>
-                    <div className="space-y-4">
+                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                       {aiTips.map((tip, index) => (
                         <motion.div
                           key={index}
@@ -427,6 +427,7 @@ export function ProductTour() {
                           <p className="text-sm">{tip}</p>
                         </motion.div>
                       ))}
+                      
                       {aiResponses.map((response, index) => (
                         <motion.div
                           key={`response-${index}`}
@@ -438,40 +439,41 @@ export function ProductTour() {
                           <p className="text-sm">{response}</p>
                         </motion.div>
                       ))}
-                      <div className="pt-4">
-                        <form onSubmit={handleAiQuestion} className="flex items-center">
-                          <input
-                            type="text"
-                            placeholder="Ask your AI coach a question..."
-                            value={aiQuestion}
-                            onChange={(e) => setAiQuestion(e.target.value)}
-                            className="flex-1 p-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-gt-gold dark:bg-gray-800 dark:border-gray-700"
-                            disabled={isAskingAi}
-                          />
-                          <button 
-                            type="submit"
-                            className="bg-gt-gold text-white p-2 rounded-r-md hover:bg-gt-gold/90 disabled:bg-gray-400"
-                            disabled={isAskingAi || !aiQuestion.trim()}
+                    </div>
+                    
+                    <div className="pt-4">
+                      <form onSubmit={handleAiQuestion} className="flex items-center">
+                        <input
+                          type="text"
+                          placeholder="Ask your AI coach a question..."
+                          value={aiQuestion}
+                          onChange={(e) => setAiQuestion(e.target.value)}
+                          className="flex-1 p-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-gt-gold dark:bg-gray-800 dark:border-gray-700"
+                          disabled={isAskingAi}
+                        />
+                        <button 
+                          type="submit"
+                          className="bg-gt-gold text-white p-2 rounded-r-md hover:bg-gt-gold/90 disabled:bg-gray-400"
+                          disabled={isAskingAi || !aiQuestion.trim()}
+                        >
+                          {isAskingAi ? "..." : 
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-5 w-5"
                           >
-                            {isAskingAi ? "..." : 
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="h-5 w-5"
-                            >
-                              <path d="m22 2-7 20-4-9-9-4Z" />
-                              <path d="M22 2 11 13" />
-                            </svg>}
-                          </button>
-                        </form>
-                      </div>
+                            <path d="m22 2-7 20-4-9-9-4Z" />
+                            <path d="M22 2 11 13" />
+                          </svg>}
+                        </button>
+                      </form>
                     </div>
                   </CardContent>
                 </Card>

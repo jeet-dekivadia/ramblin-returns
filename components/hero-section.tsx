@@ -14,6 +14,7 @@ export function HeroSection() {
   const logoBeltRef = useRef<HTMLDivElement>(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [processingFile, setProcessingFile] = useState(false)
   const router = useRouter()
   
   // Register ScrollTrigger plugin
@@ -155,6 +156,21 @@ export function HeroSection() {
     }
   };
   
+  // Open the upload modal or navigate to bank statement section
+  const handleUploadClick = () => {
+    setShowModal(true);
+    
+    // If there's a bank statement analysis section, make sure it's visible
+    setTimeout(() => {
+      const bankStatementSection = document.getElementById("bank-statement-analysis") || 
+                                  document.getElementById("dashboard");
+      if (bankStatementSection) {
+        // Just make sure it's visible, we'll scroll there after uploading
+        bankStatementSection.classList.remove("hidden");
+      }
+    }, 100);
+  };
+  
   // File upload functionality
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -164,12 +180,76 @@ export function HeroSection() {
   
   const handleFileUpload = () => {
     if (selectedFile) {
-      // In a real app this would process the file
-      alert(`Processing file: ${selectedFile.name}`);
-      setShowModal(false);
-      scrollToSection("dashboard");
+      setProcessingFile(true);
+      
+      // Simulate file processing
+      setTimeout(() => {
+        setProcessingFile(false);
+        setShowModal(false);
+        setSelectedFile(null);
+        
+        // Add a success message
+        const successMessage = document.createElement('div');
+        successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-md shadow-lg z-50';
+        successMessage.innerHTML = `<p>Successfully processed ${selectedFile.name}</p>`;
+        document.body.appendChild(successMessage);
+        
+        // Remove the message after 3 seconds
+        setTimeout(() => {
+          document.body.removeChild(successMessage);
+        }, 3000);
+        
+        // Scroll to bank statement analysis section or dashboard
+        const bankStatementSection = document.getElementById("bank-statement-analysis") || 
+                                    document.getElementById("dashboard");
+        if (bankStatementSection) {
+          scrollToSection(bankStatementSection.id);
+        }
+        
+        // Trigger the dashboard/analysis to show analysis
+        if (bankStatementSection) {
+          const event = new CustomEvent('file-processed', { 
+            detail: { filename: selectedFile.name }
+          });
+          bankStatementSection.dispatchEvent(event);
+          
+          // Also trigger any upload buttons in that section
+          const uploadBtn = bankStatementSection.querySelector('input[type="file"]');
+          if (uploadBtn) {
+            // Create a new file and simulate an upload
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(selectedFile);
+            
+            // Set the files property on the input element
+            if (uploadBtn instanceof HTMLInputElement) {
+              // Create a change event to trigger the file input's change handler
+              const changeEvent = new Event('change', { bubbles: true });
+              Object.defineProperty(uploadBtn, 'files', {
+                value: dataTransfer.files,
+                writable: false
+              });
+              uploadBtn.dispatchEvent(changeEvent);
+            }
+          }
+        }
+      }, 2000);
     } else {
       alert("Please select a file first");
+    }
+  };
+  
+  // Handle drag and drop functionality
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setSelectedFile(e.dataTransfer.files[0]);
     }
   };
 
@@ -235,7 +315,7 @@ export function HeroSection() {
             <div className="reveal-text flex flex-col sm:flex-row gap-4 mb-8">
               <Button
                 data-upload-trigger="true"
-                onClick={() => setShowModal(true)}
+                onClick={handleUploadClick}
                 className="group relative overflow-hidden bg-gradient-to-r from-gt-gold to-gs-blue hover:from-gt-gold/90 hover:to-gs-blue/90 text-white px-8 py-6 text-lg"
               >
                 <span className="relative z-10 flex items-center">
@@ -339,7 +419,7 @@ export function HeroSection() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowModal(false)}
+            onClick={() => !processingFile && setShowModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
@@ -356,6 +436,8 @@ export function HeroSection() {
               <label 
                 htmlFor="file-upload-hero"
                 className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 mb-6 text-center hover:border-gt-gold dark:hover:border-gt-gold transition-colors cursor-pointer block"
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
               >
                 <input 
                   type="file" 
@@ -363,6 +445,7 @@ export function HeroSection() {
                   className="hidden" 
                   accept=".pdf,.csv,.ofx" 
                   onChange={handleFileChange}
+                  disabled={processingFile}
                 />
                 <Upload className={`h-10 w-10 mx-auto mb-4 ${selectedFile ? 'text-gt-gold' : 'text-gray-400 dark:text-gray-600'}`} />
                 {selectedFile ? (
@@ -373,15 +456,27 @@ export function HeroSection() {
               </label>
 
               <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setShowModal(false)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowModal(false)}
+                  disabled={processingFile}
+                >
                   Cancel
                 </Button>
                 <Button 
                   className="bg-gt-gold hover:bg-gt-gold/90 text-white"
                   onClick={handleFileUpload}
-                  disabled={!selectedFile}
+                  disabled={!selectedFile || processingFile}
                 >
-                  Upload & Analyze
+                  {processingFile ? (
+                    <div className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </div>
+                  ) : "Upload & Analyze"}
                 </Button>
               </div>
             </motion.div>
