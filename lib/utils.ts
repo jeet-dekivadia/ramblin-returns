@@ -30,12 +30,13 @@ export const analyzeBankStatement = async (text: string) => {
     },
     body: JSON.stringify({ text }),
   });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Failed to analyze bank statement');
+  }
   
   const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to analyze bank statement');
-  }
   
   if (!data.analysis || typeof data.analysis !== 'object') {
     throw new Error('Invalid analysis response from server');

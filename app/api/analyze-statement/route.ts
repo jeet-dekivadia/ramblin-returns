@@ -31,11 +31,7 @@ function parseOpenAIResponse(response: string | null | undefined): any {
         console.error('Failed to parse extracted JSON:', e);
       }
     }
-    // If all parsing attempts fail, return a default structure
-    return {
-      isValid: false,
-      reason: "Could not parse the analysis results"
-    };
+    throw new Error('Could not parse the analysis results');
   }
 }
 
@@ -43,20 +39,14 @@ export async function POST(req: Request) {
   try {
     if (!process.env.OPENAI_API_KEY) {
       console.error('OpenAI API key is not configured');
-      return NextResponse.json(
-        { error: 'OpenAI API key is not configured' },
-        { status: 500 }
-      );
+      return new Response('OpenAI API key is not configured', { status: 500 });
     }
 
     const { text } = await req.json();
     
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       console.error('Invalid or empty text provided');
-      return NextResponse.json(
-        { error: 'No valid text provided' },
-        { status: 400 }
-      );
+      return new Response('No valid text provided', { status: 400 });
     }
 
     // First, analyze the statement structure
@@ -82,10 +72,7 @@ export async function POST(req: Request) {
       
       if (!structureCheck.isValid) {
         console.error('Invalid bank statement structure:', structureCheck.reason);
-        return NextResponse.json(
-          { error: `Invalid bank statement: ${structureCheck.reason}` },
-          { status: 400 }
-        );
+        return new Response(`Invalid bank statement: ${structureCheck.reason}`, { status: 400 });
       }
 
       // Analyze spending patterns and categories
@@ -146,15 +133,15 @@ export async function POST(req: Request) {
       });
     } catch (apiError) {
       console.error('OpenAI API error:', apiError);
-      return NextResponse.json(
-        { error: 'Error analyzing bank statement: ' + (apiError instanceof Error ? apiError.message : 'Unknown error') },
+      return new Response(
+        'Error analyzing bank statement: ' + (apiError instanceof Error ? apiError.message : 'Unknown error'),
         { status: 500 }
       );
     }
   } catch (error) {
     console.error('Error in bank statement analysis:', error);
-    return NextResponse.json(
-      { error: 'Failed to process bank statement: ' + (error instanceof Error ? error.message : 'Unknown error') },
+    return new Response(
+      'Failed to process bank statement: ' + (error instanceof Error ? error.message : 'Unknown error'),
       { status: 500 }
     );
   }
