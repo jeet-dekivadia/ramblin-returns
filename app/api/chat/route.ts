@@ -39,12 +39,21 @@ export async function POST(req: Request) {
       );
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini-2024-07-18",
-      messages,
-      temperature: 0.7,
-      max_tokens: 1000,
-    });
+    let completion;
+    try {
+      completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini-2024-07-18",
+        messages,
+        temperature: 0.7,
+        max_tokens: 1000,
+      });
+    } catch (openaiError) {
+      console.error('OpenAI API error:', openaiError);
+      return NextResponse.json(
+        { error: 'OpenAI API error: ' + (openaiError instanceof Error ? openaiError.message : 'Unknown error') },
+        { status: 500 }
+      );
+    }
 
     const responseContent = completion.choices[0]?.message?.content;
     if (!responseContent) {
@@ -53,13 +62,22 @@ export async function POST(req: Request) {
 
     const cleanedContent = cleanResponse(responseContent);
 
-    return NextResponse.json({
-      content: cleanedContent
-    });
+    // Ensure the response is valid JSON
+    try {
+      return NextResponse.json({
+        content: cleanedContent
+      });
+    } catch (jsonError) {
+      console.error('JSON parsing error:', jsonError);
+      return NextResponse.json(
+        { error: 'Failed to format response: ' + (jsonError instanceof Error ? jsonError.message : 'Unknown error') },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error('Error in chat API:', error);
     return NextResponse.json(
-      { error: 'Failed to get chat response: ' + (error instanceof Error ? error.message : 'Unknown error') },
+      { error: 'Failed to process request: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     );
   }
