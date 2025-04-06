@@ -5,12 +5,6 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
 import { MessageSquare, X } from 'lucide-react';
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true
-});
 
 type Message = {
   role: 'user' | 'assistant';
@@ -47,23 +41,31 @@ export function Chatbot({ isFloating = false, context }: ChatbotProps) {
     setIsLoading(true);
 
     try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: context || "You are a helpful assistant for Ramblin' Returns, a financial analysis and investment platform. Help users understand how to use the platform and answer their questions about financial analysis and investments."
-          },
-          ...messages.map((msg: Message) => ({ role: msg.role, content: msg.content })),
-          { role: 'user', content: input }
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: "system",
+              content: context || "You are a helpful assistant for Ramblin' Returns, a financial analysis and investment platform. Help users understand how to use the platform and answer their questions about financial analysis and investments."
+            },
+            ...messages.map((msg: Message) => ({ role: msg.role, content: msg.content })),
+            { role: 'user', content: input }
+          ],
+        }),
       });
 
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
       const assistantMessage: Message = {
         role: 'assistant',
-        content: completion.choices[0].message.content || 'Sorry, I could not process your request.'
+        content: data.content || 'Sorry, I could not process your request.'
       };
       setMessages((prev: Message[]) => [...prev, assistantMessage]);
     } catch (error) {
