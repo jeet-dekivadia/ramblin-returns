@@ -44,7 +44,7 @@ export function UrlSecurity() {
   }
 
   return (
-    <section className="py-20 bg-white dark:bg-gray-950">
+    <section id="url-security" className="py-20 bg-white dark:bg-gray-950">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
@@ -58,7 +58,7 @@ export function UrlSecurity() {
             </motion.div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Protect Yourself from Phishing</h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              Check if a URL is safe before clicking. Our tool unshortens URLs and detects potential phishing attempts.
+              SECURE: Blocks scams better than CRC WiFi blocks connections
             </p>
           </div>
 
@@ -155,21 +155,6 @@ export function UrlSecurity() {
               </div>
             </CardContent>
           </Card>
-
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Powered by{" "}
-              <a
-                href="https://github.com/radhe098/Unshorten-URLs/tree/main"
-                className="text-gt-gold hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Unshorten URLs
-              </a>{" "}
-              technology
-            </p>
-          </div>
         </div>
       </div>
     </section>

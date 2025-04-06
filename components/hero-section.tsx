@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from "react"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Upload, CreditCard, Shield, TrendingUp, ChevronDown } from "lucide-react"
+import { ArrowRight, Upload, CreditCard, Shield, TrendingUp, ChevronDown, Heart } from "lucide-react"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import Image from "next/image"
 
 export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLDivElement>(null)
+  const logoBeltRef = useRef<HTMLDivElement>(null)
   const [showModal, setShowModal] = useState(false)
 
   // Register ScrollTrigger plugin
@@ -75,6 +77,16 @@ export function HeroSection() {
           },
         )
       })
+
+      // Animate the logo belt
+      if (logoBeltRef.current) {
+        gsap.to(logoBeltRef.current, {
+          x: "-50%",
+          duration: 20,
+          repeat: -1,
+          ease: "linear",
+        })
+      }
     }, containerRef)
 
     return () => ctx.revert()
@@ -88,6 +100,18 @@ export function HeroSection() {
 
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+
+  // Sponsor logos
+  const sponsorLogos = [
+    { src: "/images/ramblin-hacks.png", alt: "Ramblin' Hacks", width: 200 },
+    { src: "/images/goldman.png", alt: "Goldman Sachs", width: 150 },
+    { src: "/images/microsoft.png", alt: "Microsoft", width: 150 },
+    { src: "/images/usa.png", alt: "USA", width: 100 },
+    { src: "/images/geico.png", alt: "GEICO", width: 120 },
+    { src: "/images/elevance.png", alt: "Elevance Health", width: 150 },
+    { src: "/images/fanduel.png", alt: "FanDuel", width: 100 },
+    { src: "/images/tradedesk.png", alt: "The Trade Desk", width: 180 },
+  ]
 
   return (
     <motion.div ref={containerRef} className="relative min-h-screen overflow-hidden">
@@ -119,9 +143,9 @@ export function HeroSection() {
           <motion.div style={{ opacity, y }} className="flex flex-col items-center">
             {/* Branded Badge */}
             <div className="reveal-text mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gt-gold/20 to-gs-blue/20 px-4 py-2 backdrop-blur-sm">
-              <span className="text-sm font-medium text-gt-gold dark:text-gt-gold">Powered by</span>
-              <div className="h-5 w-px bg-gray-300 dark:bg-gray-700"></div>
-              <span className="text-sm font-medium text-gs-blue dark:text-gs-blue">Goldman Sachs</span>
+              <span className="text-sm font-medium text-gt-navy dark:text-gt-gold">
+                Georgia Tech&apos;s first AI-powered spend-to-invest engine
+              </span>
             </div>
 
             {/* Main Headline */}
@@ -131,7 +155,7 @@ export function HeroSection() {
 
             {/* Animated Subtitle */}
             <p className="reveal-text text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-2xl mb-8">
-              Upload your bank statement and let our AI transform your financial future
+              Turn your coffee runs into stock wins—automatically.
             </p>
 
             {/* Floating Icons */}
@@ -148,7 +172,7 @@ export function HeroSection() {
             </div>
 
             {/* CTA Buttons */}
-            <div className="reveal-text flex flex-col sm:flex-row gap-4 mb-12">
+            <div className="reveal-text flex flex-col sm:flex-row gap-4 mb-8">
               <Button
                 onClick={() => setShowModal(true)}
                 className="group relative overflow-hidden bg-gradient-to-r from-gt-gold to-gs-blue hover:from-gt-gold/90 hover:to-gs-blue/90 text-white px-8 py-6 text-lg"
@@ -167,6 +191,34 @@ export function HeroSection() {
                 <Shield className="mr-2 h-5 w-5" />
                 Check URL Safety
               </Button>
+            </div>
+
+            {/* Made with Love */}
+            <div className="reveal-text flex items-center justify-center mb-8 text-gray-600 dark:text-gray-300">
+              <span className="flex items-center text-lg">
+                Made with <Heart className="h-5 w-5 mx-1 text-red-500 fill-red-500" /> at Ramblin&apos; Hacks 2025
+              </span>
+            </div>
+
+            {/* Sponsor Logo Belt */}
+            <div className="reveal-text w-full overflow-hidden mb-8">
+              <div
+                ref={logoBeltRef}
+                className="flex items-center space-x-12 whitespace-nowrap"
+                style={{ width: "200%" }}
+              >
+                {[...sponsorLogos, ...sponsorLogos].map((logo, index) => (
+                  <div key={index} className="flex-shrink-0 opacity-80 hover:opacity-100 transition-opacity">
+                    <Image
+                      src={logo.src || "/placeholder.svg"}
+                      alt={logo.alt}
+                      width={logo.width}
+                      height={60}
+                      className="h-12 object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Scroll Indicator */}
@@ -196,9 +248,7 @@ export function HeroSection() {
               <TrendingUp className="h-6 w-6" />
             </div>
             <h3 className="text-xl font-bold mb-2">Smart Investments</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Automatically invest in stocks of companies you shop with
-            </p>
+            <p className="text-gray-600 dark:text-gray-400">Your Chipotle habit just became an investment strategy</p>
           </div>
 
           <div className="feature-card bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 transform hover:scale-105 transition-transform duration-300">
@@ -206,7 +256,9 @@ export function HeroSection() {
               <Shield className="h-6 w-6" />
             </div>
             <h3 className="text-xl font-bold mb-2">Fraud Protection</h3>
-            <p className="text-gray-600 dark:text-gray-400">Verify URLs and protect yourself from phishing attempts</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              SECURE: Blocks scams better than CRC WiFi blocks connections
+            </p>
           </div>
 
           <div className="feature-card bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 transform hover:scale-105 transition-transform duration-300">
@@ -214,7 +266,9 @@ export function HeroSection() {
               <CreditCard className="h-6 w-6" />
             </div>
             <h3 className="text-xl font-bold mb-2">Spending Analysis</h3>
-            <p className="text-gray-600 dark:text-gray-400">Get detailed insights into your spending patterns</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              No budgeting. Just spend normally and watch your portfolio grow
+            </p>
           </div>
         </div>
       </div>

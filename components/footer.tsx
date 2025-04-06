@@ -1,9 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Github, Twitter, Linkedin, Mail, ExternalLink } from "lucide-react"
+import { Linkedin } from "lucide-react"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -11,150 +9,31 @@ export function Footer() {
   return (
     <footer className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 border-t border-gray-200 dark:border-gray-800">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <span className="text-2xl font-bold text-gt-gold">R</span>
-              <span className="text-xl font-semibold ml-1">Ramblin&apos; Returns</span>
-            </div>
-            <p className="text-gray-600 dark:text-gray-300">Built for the Modern Rambler.</p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-500 hover:text-gt-gold transition-colors">
-                <Github size={20} />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gt-gold transition-colors">
-                <Twitter size={20} />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gt-gold transition-colors">
-                <Linkedin size={20} />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gt-gold transition-colors">
-                <Mail size={20} />
-              </a>
-            </div>
+        <div className="flex flex-col items-center justify-center text-center">
+          <div className="flex items-center mb-4">
+            <span className="text-2xl font-bold text-gt-gold">R</span>
+            <span className="text-xl font-semibold ml-1">Ramblin&apos; Returns</span>
           </div>
 
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Product</h3>
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gt-gold transition-colors">
-                  Features
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gt-gold transition-colors">
-                  Pricing
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gt-gold transition-colors">
-                  Testimonials
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gt-gold transition-colors">
-                  FAQ
-                </a>
-              </li>
-            </ul>
+          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mb-6">
+            Ramblin&apos; Returns was a hackathon project built by Jeet Dekivadia during Ramblin&apos; Hacks 2025.
+            Microsoft Excel integration: Your portfolio updates itself.
+          </p>
+
+          <div className="flex items-center mb-8">
+            <a
+              href="https://www.linkedin.com/in/jeetdekivadia/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-gt-gold hover:underline"
+            >
+              <Linkedin className="h-5 w-5 mr-2" />
+              <span>linkedin.com/in/jeetdekivadia</span>
+            </a>
           </div>
 
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Company</h3>
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gt-gold transition-colors">
-                  About
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gt-gold transition-colors">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gt-gold transition-colors">
-                  Careers
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gt-gold transition-colors">
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Stay Updated</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">Subscribe to our newsletter for the latest updates.</p>
-            <div className="flex space-x-2">
-              <Input type="email" placeholder="Enter your email" className="bg-gray-100 dark:bg-gray-800 border-0" />
-              <Button className="bg-gt-gold hover:bg-gt-gold/90 text-white">Subscribe</Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-            <div className="text-gray-500 dark:text-gray-400 mb-4 md:mb-0">
-              © {currentYear} Ramblin&apos; Returns. All rights reserved.
-            </div>
-            <div className="flex space-x-6">
-              <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gt-gold transition-colors text-sm">
-                Privacy Policy
-              </a>
-              <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gt-gold transition-colors text-sm">
-                Terms of Service
-              </a>
-              <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gt-gold transition-colors text-sm">
-                Cookie Policy
-              </a>
-            </div>
-          </div>
-
-          {/* Sponsors Section */}
-          <div className="flex flex-col items-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Proudly sponsored by</p>
-            <div className="flex flex-wrap justify-center gap-8 items-center">
-              <a
-                href="https://www.gatech.edu/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
-              >
-                <div className="bg-gt-gold text-white font-bold px-3 py-2 rounded">GT</div>
-                <span className="text-gt-navy dark:text-gt-gold font-semibold">Georgia Tech</span>
-                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </a>
-
-              <a
-                href="https://www.goldmansachs.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
-              >
-                <div className="bg-gs-blue text-white font-bold px-2 py-2 rounded">GS</div>
-                <span className="text-gs-blue font-semibold">Goldman Sachs</span>
-                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </a>
-
-              <a
-                href="https://devpost.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
-              >
-                <div className="bg-gray-800 dark:bg-gray-700 text-white font-bold px-2 py-2 rounded">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M6.002 1.61L0 12.004L6.002 22.39h11.996L24 12.004L17.998 1.61H6.002zm1.593 16.526h-1.58V5.864h1.58v12.272zm.794-10.311h4.872c2.48 0 4.012 1.546 4.012 4.131 0 2.585-1.533 4.131-4.012 4.131H8.389V7.825zm4.614 6.458c1.715 0 2.584-.869 2.584-2.327 0-1.457-.869-2.327-2.584-2.327h-2.937v4.654h2.937z" />
-                  </svg>
-                </div>
-                <span className="text-gray-800 dark:text-gray-300 font-semibold">Devpost</span>
-                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </a>
-            </div>
+          <div className="text-gray-500 dark:text-gray-400 text-sm">
+            © {currentYear} Ramblin&apos; Returns. All rights reserved.
           </div>
         </div>
 

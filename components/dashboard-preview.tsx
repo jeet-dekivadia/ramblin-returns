@@ -6,7 +6,17 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
-import { ArrowRight, Coffee, ShoppingBag, Car, CreditCard, TrendingUp, Shield, ChevronRight } from "lucide-react"
+import {
+  ArrowRight,
+  Coffee,
+  ShoppingBag,
+  Car,
+  CreditCard,
+  TrendingUp,
+  Shield,
+  ChevronRight,
+  Trophy,
+} from "lucide-react"
 
 export function DashboardPreview() {
   const ref = useRef<HTMLDivElement>(null)
@@ -55,6 +65,13 @@ export function DashboardPreview() {
     },
   ]
 
+  const leaderboardData = [
+    { name: "Alex K.", points: 1250, returns: "+18.2%" },
+    { name: "Jeet D.", points: 1120, returns: "+15.7%" },
+    { name: "Sarah M.", points: 980, returns: "+12.3%" },
+    { name: "Michael T.", points: 840, returns: "+10.8%" },
+  ]
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -88,7 +105,7 @@ export function DashboardPreview() {
             Your Financial Command Center
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Upload your bank statement and get instant access to powerful insights and investment opportunities
+            From ramblin&apos; spender to savvy investor—zero effort required
           </p>
         </motion.div>
 
@@ -105,7 +122,7 @@ export function DashboardPreview() {
                   <CreditCard className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold">Ramblin' Returns Dashboard</h3>
+                  <h3 className="font-bold">Ramblin&apos; Returns Dashboard</h3>
                   <p className="text-sm text-white/80">Welcome back, Jeet</p>
                 </div>
               </div>
@@ -125,7 +142,7 @@ export function DashboardPreview() {
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="border-b border-gray-200 dark:border-gray-800">
                 <TabsList className="p-0 bg-transparent h-auto">
-                  {["overview", "spending", "investments", "security"].map((tab) => (
+                  {["overview", "spending", "investments", "leaderboard", "security"].map((tab) => (
                     <TabsTrigger
                       key={tab}
                       value={tab}
@@ -222,7 +239,7 @@ export function DashboardPreview() {
                     <TrendingUp className="h-16 w-16 mx-auto text-gt-gold mb-4" />
                     <h3 className="text-2xl font-bold mb-2">Detailed Spending Analysis</h3>
                     <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
-                      Upload your bank statement to see a complete breakdown of your spending habits
+                      The only app that turns your dining dollars into Wall Street gains
                     </p>
                     <Button className="bg-gt-gold hover:bg-gt-gold/90 text-white">Upload Statement</Button>
                   </div>
@@ -233,9 +250,57 @@ export function DashboardPreview() {
                     <CreditCard className="h-16 w-16 mx-auto text-gs-blue mb-4" />
                     <h3 className="text-2xl font-bold mb-2">Smart Investment Recommendations</h3>
                     <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
-                      Connect your accounts to get personalized investment recommendations based on your spending
+                      Goldman-grade investing meets FanDuel-style rewards
                     </p>
                     <Button className="bg-gs-blue hover:bg-gs-blue/90 text-white">Connect Accounts</Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="leaderboard" className="mt-0">
+                  <div className="py-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-2xl font-bold">BuzzBuck Leaderboard</h3>
+                      <div className="bg-gt-gold/10 px-3 py-1 rounded-full">
+                        <span className="text-gt-gold font-medium">
+                          Out-invest your classmates on the BuzzBuck leaderboard
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      {leaderboardData.map((user, index) => (
+                        <div
+                          key={index}
+                          className={`flex items-center p-4 rounded-lg ${
+                            index === 0
+                              ? "bg-gradient-to-r from-gt-gold/20 to-gt-gold/5 border border-gt-gold/30"
+                              : "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
+                          }`}
+                        >
+                          <div
+                            className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                              index === 0
+                                ? "bg-gt-gold text-white"
+                                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                            } font-bold mr-4`}
+                          >
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex justify-between">
+                              <h5 className="font-medium">{user.name}</h5>
+                              <span className="text-green-500 font-medium">{user.returns}</span>
+                            </div>
+                            <div className="flex items-center mt-1">
+                              <Trophy className="h-4 w-4 text-gt-gold mr-1" />
+                              <span className="text-sm text-gray-500 dark:text-gray-400">{user.points} points</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-6 text-center">
+                      <Button className="bg-gt-gold hover:bg-gt-gold/90 text-white">View Full Leaderboard</Button>
+                    </div>
                   </div>
                 </TabsContent>
 
@@ -244,7 +309,7 @@ export function DashboardPreview() {
                     <Shield className="h-16 w-16 mx-auto text-gt-navy mb-4" />
                     <h3 className="text-2xl font-bold mb-2">URL Security Checker</h3>
                     <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
-                      Paste any suspicious URL to check if it's safe before clicking
+                      SECURE: Blocks scams better than CRC WiFi blocks connections
                     </p>
                     <div className="flex max-w-md mx-auto">
                       <input

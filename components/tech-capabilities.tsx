@@ -13,47 +13,47 @@ export function TechCapabilities() {
     {
       icon: <TrendingUp className="h-10 w-10 text-gt-gold" />,
       title: "Wall Street-grade Algorithms",
-      description: "Leverage the same financial algorithms used by professional traders and investment firms.",
+      description: "Turn your coffee runs into stock wins—automatically.",
     },
     {
       icon: <Bot className="h-10 w-10 text-gt-gold" />,
-      title: "Real-time NLP & AI Coaching",
-      description: "Get personalized financial advice powered by advanced natural language processing.",
+      title: "Real-time AI Coaching",
+      description: "From ramblin' spender to savvy investor—zero effort required.",
     },
     {
       icon: <Shield className="h-10 w-10 text-gt-gold" />,
       title: "Secure Banking Integrations",
-      description: "Connect your accounts with bank-level security and end-to-end encryption.",
+      description: "SECURE: Blocks scams better than CRC WiFi blocks connections.",
     },
     {
       icon: <BarChart4 className="h-10 w-10 text-gt-gold" />,
       title: "Advanced Analytics",
-      description: "Visualize your financial data with interactive charts and predictive insights.",
+      description: "Your Chipotle habit just became an investment strategy.",
     },
     {
       icon: <Database className="h-10 w-10 text-gt-gold" />,
       title: "Transaction Categorization",
-      description: "Automatically categorize and analyze your spending patterns with machine learning.",
+      description: "No budgeting. Just spend normally and watch your portfolio grow.",
     },
     {
       icon: <Lock className="h-10 w-10 text-gt-gold" />,
       title: "Fraud Detection System",
-      description: "Protect your finances with our AI-powered fraud detection and prevention system.",
+      description: "Goldman-grade investing meets FanDuel-style rewards.",
     },
     {
       icon: <LineChart className="h-10 w-10 text-gt-gold" />,
       title: "Portfolio Optimization",
-      description: "Optimize your investment portfolio based on your risk tolerance and financial goals.",
+      description: "Out-invest your classmates on the BuzzBuck leaderboard.",
     },
     {
       icon: <Zap className="h-10 w-10 text-gt-gold" />,
       title: "Real-time Market Data",
-      description: "Access real-time market data and insights to make informed investment decisions.",
+      description: "The only app that turns your dining dollars into Wall Street gains.",
     },
     {
       icon: <Cpu className="h-10 w-10 text-gt-gold" />,
-      title: "Quantum-inspired Predictions",
-      description: "Benefit from our quantum-inspired algorithms for more accurate financial forecasting.",
+      title: "Excel Integration",
+      description: "Microsoft Excel integration: Your portfolio updates itself.",
     },
   ]
 
@@ -84,7 +84,7 @@ export function TechCapabilities() {
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">The Tech Behind the Magic</h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Powered by cutting-edge technology, Ramblin&apos; Returns brings you the future of financial management.
+            Georgia Tech&apos;s first AI-powered spend-to-invest engine
           </p>
         </motion.div>
 
