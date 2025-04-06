@@ -13,38 +13,57 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      return NextResponse.json(
+        { error: 'Please upload a PDF file' },
+        { status: 400 }
+      );
+    }
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    return new Promise((resolve, reject) => {
-      const pdfParser = new PDFParser();
-      let text = '';
+    const text = await new Promise((resolve, reject) => {
+      const pdfParser = new PDFParser(null, 1);
+      let extractedText = '';
 
       pdfParser.on('pdfParser_dataReady', (pdfData) => {
         try {
-          // Extract text from all pages
           pdfData.Pages.forEach((page) => {
             page.Texts.forEach((textObj) => {
-              text += decodeURIComponent(textObj.R[0].T) + ' ';
+              extractedText += decodeURIComponent(textObj.R[0].T) + ' ';
             });
+            extractedText += '\n';
           });
-          resolve(NextResponse.json({ text: text.trim() }));
+          resolve(extractedText.trim());
         } catch (error) {
-          reject(error);
+          reject(new Error('Failed to parse PDF content'));
         }
       });
 
       pdfParser.on('pdfParser_dataError', (error) => {
-        reject(error);
+        reject(new Error('Failed to parse PDF file'));
       });
 
-      // Parse the PDF buffer
-      pdfParser.parseBuffer(buffer);
+      try {
+        pdfParser.parseBuffer(buffer);
+      } catch (error) {
+        reject(new Error('Failed to read PDF file'));
+      }
     });
+
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Could not extract text from PDF' },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({ text });
   } catch (error) {
     console.error('Error extracting PDF:', error);
     return NextResponse.json(
-      { error: 'Failed to extract text from PDF' },
+      { error: error instanceof Error ? error.message : 'Failed to extract text from PDF' },
       { status: 500 }
     );
   }

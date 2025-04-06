@@ -9,9 +9,9 @@ export async function POST(req: Request) {
   try {
     const { text } = await req.json();
     
-    if (!text) {
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
       return NextResponse.json(
-        { error: 'No text provided' },
+        { error: 'No valid text provided' },
         { status: 400 }
       );
     }
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: "You are a financial data analyst. Extract and structure the following bank statement data into categories: transactions, recurring payments, income, and spending by category. Return the data in a structured format."
+          content: "You are a financial data analyst. First, determine if the provided text appears to be a valid bank statement. Look for typical bank statement elements like transaction dates, amounts, balances, etc. Respond with a JSON object containing { isValid: boolean, reason: string }"
         },
         {
           role: "user",
@@ -30,18 +30,51 @@ export async function POST(req: Request) {
         }
       ],
       temperature: 0.3,
+      max_tokens: 500,
+    });
+
+    const structureCheck = JSON.parse(structureCompletion.choices[0].message.content || '{"isValid": false, "reason": "Could not analyze text"}');
+    
+    if (!structureCheck.isValid) {
+      return NextResponse.json(
+        { error: `Invalid bank statement: ${structureCheck.reason}` },
+        { status: 400 }
+      );
+    }
+
+    // Analyze spending patterns and categories
+    const analysisCompletion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: `You are a financial analyst. Analyze the bank statement and provide a structured analysis in JSON format with the following structure:
+          {
+            "spendingByCategory": [{ "category": string, "amount": number }],
+            "monthlySpending": [{ "month": string, "amount": number }],
+            "topMerchants": [{ "merchant": string, "amount": number }],
+            "insights": string,
+            "savingsSuggestions": string[]
+          }`
+        },
+        {
+          role: "user",
+          content: text
+        }
+      ],
+      temperature: 0.7,
       max_tokens: 1000,
     });
 
-    const structuredData = JSON.parse(structureCompletion.choices[0].message.content || '{}');
+    const analysis = JSON.parse(analysisCompletion.choices[0].message.content || '{}');
 
-    // Then, analyze the merchants for investment opportunities
+    // Extract merchants for investment recommendations
     const merchantCompletion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "Extract a list of merchants from the bank statement that are likely to be publicly traded companies. Return only the company names in a JSON array."
+          content: "Extract a list of merchants from the bank statement that are likely to be publicly traded companies. Return a JSON array of company names."
         },
         {
           role: "user",
@@ -54,28 +87,14 @@ export async function POST(req: Request) {
 
     const merchants = JSON.parse(merchantCompletion.choices[0].message.content || '[]');
 
-    // Format the data for visualization
-    const spendingByCategory = Object.entries(structuredData.spending || {}).map(([category, amount]) => ({
-      category,
-      amount: Number(amount)
-    }));
-
-    const monthlySpending = structuredData.monthlySpending || [];
-    const topMerchants = structuredData.topMerchants || [];
-
     return NextResponse.json({
-      analysis: {
-        spendingByCategory,
-        monthlySpending,
-        topMerchants
-      },
-      merchants,
-      summary: structuredData.summary || 'Analysis completed successfully.'
+      analysis,
+      merchants
     });
   } catch (error) {
     console.error('Error analyzing bank statement:', error);
     return NextResponse.json(
-      { error: 'Failed to analyze bank statement. Please ensure the PDF is readable and try again.' },
+      { error: error instanceof Error ? error.message : 'Failed to analyze bank statement' },
       { status: 500 }
     );
   }
