@@ -23,7 +23,7 @@ export function TechCapabilities() {
     {
       icon: <Shield className="h-10 w-10 text-gt-gold" />,
       title: "Secure Banking Integrations",
-      description: "SECURE: Blocks scams better than CRC WiFi blocks connections.",
+      description: "Advanced security that protects your financial data.",
     },
     {
       icon: <BarChart4 className="h-10 w-10 text-gt-gold" />,

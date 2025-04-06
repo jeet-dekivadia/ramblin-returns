@@ -58,7 +58,7 @@ export function UrlSecurity() {
             </motion.div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Protect Yourself from Phishing</h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              SECURE: Blocks scams better than CRC WiFi blocks connections
+              Advanced security that blocks scams and protects your financial data
             </p>
           </div>
 

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Upload, CreditCard, Shield, TrendingUp, ChevronDown, Heart } from "lucide-react"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import Image from "next/image"
 
 export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -101,16 +100,48 @@ export function HeroSection() {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
 
-  // Sponsor logos
+  // Sponsor logos with direct URLs
   const sponsorLogos = [
-    { src: "/images/ramblin-hacks.png", alt: "Ramblin' Hacks", width: 200 },
-    { src: "/images/goldman.png", alt: "Goldman Sachs", width: 150 },
-    { src: "/images/microsoft.png", alt: "Microsoft", width: 150 },
-    { src: "/images/usa.png", alt: "USA", width: 100 },
-    { src: "/images/geico.png", alt: "GEICO", width: 120 },
-    { src: "/images/elevance.png", alt: "Elevance Health", width: 150 },
-    { src: "/images/fanduel.png", alt: "FanDuel", width: 100 },
-    { src: "/images/tradedesk.png", alt: "The Trade Desk", width: 180 },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-bh8p2bH5Qra3yVbeEBM1UsOajx1PQV.png",
+      alt: "Ramblin' Hacks",
+      width: 200,
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-1FW87j5oB4eofAsZaxlFO5OoGazKpm.png",
+      alt: "Goldman Sachs",
+      width: 150,
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ME5Idt7QEXTVkBAPMCvqUwE0cBnLBP.png",
+      alt: "Microsoft",
+      width: 150,
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-fq3mAHVRKKv2WjP4kYEBMggzbieuQU.png",
+      alt: "USA",
+      width: 100,
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ellck8WUikm3RhD8v9CpGBbDU0HwYe.png",
+      alt: "GEICO",
+      width: 120,
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-q9UTe25SSiJYadibaZyRwBkbRO1rvy.png",
+      alt: "Elevance Health",
+      width: 150,
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-G94k5e4FE0vbbzH0vFmUPqWZpUlTT1.png",
+      alt: "FanDuel",
+      width: 100,
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-9XfqpT3BTU5gf9F5kPVoQCEifSlhjt.png",
+      alt: "The Trade Desk",
+      width: 180,
+    },
   ]
 
   return (
@@ -209,7 +240,7 @@ export function HeroSection() {
               >
                 {[...sponsorLogos, ...sponsorLogos].map((logo, index) => (
                   <div key={index} className="flex-shrink-0 opacity-80 hover:opacity-100 transition-opacity">
-                    <Image
+                    <img
                       src={logo.src || "/placeholder.svg"}
                       alt={logo.alt}
                       width={logo.width}
@@ -256,9 +287,7 @@ export function HeroSection() {
               <Shield className="h-6 w-6" />
             </div>
             <h3 className="text-xl font-bold mb-2">Fraud Protection</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              SECURE: Blocks scams better than CRC WiFi blocks connections
-            </p>
+            <p className="text-gray-600 dark:text-gray-400">Advanced security to protect your financial data</p>
           </div>
 
           <div className="feature-card bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 transform hover:scale-105 transition-transform duration-300">
