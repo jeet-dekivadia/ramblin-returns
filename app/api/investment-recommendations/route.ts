@@ -37,8 +37,8 @@ export async function POST(req: Request) {
       return new Response('No valid merchants provided', { status: 400 });
     }
 
-    // Limit to top 3 merchants to reduce processing time
-    const topMerchants = merchants.slice(0, 3);
+    // Take only the first merchant to minimize processing
+    const mainMerchant = merchants[0];
 
     try {
       const completion = await openai.chat.completions.create({
@@ -46,18 +46,18 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: "You are a financial advisor. Analyze these companies and provide very brief investment insights."
+            content: "You are a financial advisor. Provide a one-sentence investment insight."
           },
           {
             role: "user",
-            content: `Provide a quick analysis for these companies: ${topMerchants.join(", ")}`
+            content: `Quick investment insight for ${mainMerchant}:`
           }
         ],
         temperature: 0.3,
-        max_tokens: 250
+        max_tokens: 100
       });
 
-      const content = completion.choices[0]?.message?.content || '';
+      const content = completion.choices[0]?.message?.content || 'No insights available.';
 
       return new Response(content, {
         status: 200,
@@ -67,16 +67,10 @@ export async function POST(req: Request) {
       });
     } catch (apiError) {
       console.error('OpenAI API error:', apiError);
-      return new Response(
-        'Error analyzing companies: ' + (apiError instanceof Error ? apiError.message : 'Unknown error'),
-        { status: 500 }
-      );
+      return new Response('Brief analysis unavailable at the moment', { status: 500 });
     }
   } catch (error) {
     console.error('Error:', error);
-    return new Response(
-      'Failed to process request: ' + (error instanceof Error ? error.message : 'Unknown error'),
-      { status: 500 }
-    );
+    return new Response('Unable to process request', { status: 500 });
   }
 } 

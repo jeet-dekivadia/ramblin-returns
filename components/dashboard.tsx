@@ -39,8 +39,9 @@ type InvestmentRecommendation = {
 export function Dashboard() {
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
-  const [recommendations, setRecommendations] = useState<InvestmentRecommendation[]>([]);
+  const [recommendations, setRecommendations] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +51,7 @@ export function Dashboard() {
     setFile(selectedFile);
     setIsLoading(true);
     setError(null);
+    setRecommendations('');
 
     try {
       const text = await extractTextFromPDF(selectedFile);
@@ -57,6 +59,7 @@ export function Dashboard() {
       setAnalysis(statementAnalysis);
 
       if (merchants.length > 0) {
+        setIsLoadingRecommendations(true);
         try {
           const response = await fetch('/api/investment-recommendations', {
             method: 'POST',
@@ -67,18 +70,16 @@ export function Dashboard() {
           });
 
           if (!response.ok) {
-            throw new Error('Failed to get investment recommendations');
+            throw new Error('Unable to get investment insights');
           }
 
-          const recommendationsText = await response.text();
-          setRecommendations([{
-            company: 'Investment Insights',
-            analysis: recommendationsText,
-            recommendation: 'info'
-          }]);
+          const insight = await response.text();
+          setRecommendations(insight);
         } catch (recError) {
           console.error('Error getting recommendations:', recError);
-          setError('Failed to get investment recommendations');
+          setRecommendations('Investment insights temporarily unavailable.');
+        } finally {
+          setIsLoadingRecommendations(false);
         }
       }
     } catch (err) {
@@ -315,31 +316,21 @@ export function Dashboard() {
               <TabsContent value="investments">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Investment Recommendations</CardTitle>
+                    <CardTitle>Investment Insights</CardTitle>
                     <CardDescription>Based on your spending patterns</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {recommendations.map((rec, index) => (
-                        <Card key={index}>
-                          <CardHeader>
-                            <CardTitle>{rec.company}</CardTitle>
-                            <CardDescription>
-                              Recommendation: <span className={`font-bold ${
-                                rec.recommendation === 'buy' ? 'text-green-500' :
-                                rec.recommendation === 'sell' ? 'text-red-500' :
-                                'text-yellow-500'
-                              }`}>
-                                {rec.recommendation.toUpperCase()}
-                              </span>
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <p>{rec.analysis}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                    {isLoadingRecommendations ? (
+                      <div className="flex justify-center items-center h-24">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                      </div>
+                    ) : recommendations ? (
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <p className="text-gray-800">{recommendations}</p>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center">No investment insights available yet.</p>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
