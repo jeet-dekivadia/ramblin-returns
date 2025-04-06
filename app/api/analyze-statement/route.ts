@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
     // First, analyze the statement structure
     const structureCompletion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
 
     // Extract merchants for investment recommendations
     const merchantCompletion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
