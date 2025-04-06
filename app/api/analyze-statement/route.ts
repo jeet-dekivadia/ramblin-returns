@@ -16,25 +16,26 @@ export async function POST(req: Request) {
       );
     }
 
-    const completion = await openai.chat.completions.create({
+    // First, analyze the statement structure
+    const structureCompletion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are a financial analyst. Analyze the bank statement and provide insights about spending patterns, recurring expenses, and potential areas for savings. Also identify merchants that might be publicly traded companies."
+          content: "You are a financial data analyst. Extract and structure the following bank statement data into categories: transactions, recurring payments, income, and spending by category. Return the data in a structured format."
         },
         {
           role: "user",
           content: text
         }
       ],
-      temperature: 0.7,
+      temperature: 0.3,
       max_tokens: 1000,
     });
 
-    const analysis = completion.choices[0].message.content;
+    const structuredData = JSON.parse(structureCompletion.choices[0].message.content || '{}');
 
-    // Extract merchants for investment recommendations
+    // Then, analyze the merchants for investment opportunities
     const merchantCompletion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
@@ -53,14 +54,28 @@ export async function POST(req: Request) {
 
     const merchants = JSON.parse(merchantCompletion.choices[0].message.content || '[]');
 
+    // Format the data for visualization
+    const spendingByCategory = Object.entries(structuredData.spending || {}).map(([category, amount]) => ({
+      category,
+      amount: Number(amount)
+    }));
+
+    const monthlySpending = structuredData.monthlySpending || [];
+    const topMerchants = structuredData.topMerchants || [];
+
     return NextResponse.json({
-      analysis,
-      merchants
+      analysis: {
+        spendingByCategory,
+        monthlySpending,
+        topMerchants
+      },
+      merchants,
+      summary: structuredData.summary || 'Analysis completed successfully.'
     });
   } catch (error) {
     console.error('Error analyzing bank statement:', error);
     return NextResponse.json(
-      { error: 'Failed to analyze bank statement' },
+      { error: 'Failed to analyze bank statement. Please ensure the PDF is readable and try again.' },
       { status: 500 }
     );
   }
