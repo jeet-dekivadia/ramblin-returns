@@ -6,6 +6,13 @@ import { ThemeProvider } from "@/components/theme-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
+const navigation = [
+  { name: 'Product Tour', href: '/' },
+  { name: 'Dashboard', href: '/dashboard' },
+  { name: 'URL Security', href: '/url-security' },
+  { name: 'Technology', href: '/technology' },
+];
+
 export const metadata: Metadata = {
   title: "Ramblin' Returns | Turn Spending Into Investing",
   description: "AI-powered financial platform that transforms your spending into smart investments",
