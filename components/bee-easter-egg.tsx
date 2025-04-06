@@ -94,22 +94,11 @@ export function BeeEasterEgg() {
             }}
             className="w-16 h-16"
           >
-            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M32 8C18.7452 8 8 18.7452 8 32C8 45.2548 18.7452 56 32 56C45.2548 56 56 45.2548 56 32C56 18.7452 45.2548 8 32 8Z"
-                fill="#B3A369"
-              />
-              <path
-                d="M32 48C40.8366 48 48 40.8366 48 32C48 23.1634 40.8366 16 32 16C23.1634 16 16 23.1634 16 32C16 40.8366 23.1634 48 32 48Z"
-                fill="#FFCC00"
-              />
-              <path
-                d="M32 40C36.4183 40 40 36.4183 40 32C40 27.5817 36.4183 24 32 24C27.5817 24 24 27.5817 24 32C24 36.4183 27.5817 40 32 40Z"
-                fill="#000000"
-              />
-              <path d="M28 28L24 20" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-              <path d="M36 28L40 20" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Georgia-Tech-Yellow-Jackets-logo-500x281-1%20%281%29-JQlXXRXH6mI5meLbd6CdZ6s7ZGyeTs.png"
+              alt="Georgia Tech Yellow Jackets logo"
+              className="w-16 h-16"
+            />
           </motion.div>
         </motion.div>
       )}
