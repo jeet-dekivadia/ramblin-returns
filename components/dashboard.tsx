@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -6,17 +8,17 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Chatbot } from './chatbot';
 import { extractTextFromPDF, analyzeBankStatement, getInvestmentRecommendations } from '@/lib/utils';
 
-interface Analysis {
+type Analysis = {
   spendingByCategory: { category: string; amount: number }[];
   monthlySpending: { month: string; amount: number }[];
   topMerchants: { merchant: string; amount: number }[];
-}
+};
 
-interface InvestmentRecommendation {
+type InvestmentRecommendation = {
   company: string;
   analysis: string;
   recommendation: 'buy' | 'hold' | 'sell';
-}
+};
 
 export function Dashboard() {
   const [file, setFile] = useState<File | null>(null);

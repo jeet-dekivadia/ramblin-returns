@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -7,12 +9,13 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true
 });
 
-interface Message {
+type Message = {
   role: 'user' | 'assistant';
   content: string;
-}
+};
 
 interface ChatbotProps {
   isFloating?: boolean;
@@ -34,12 +37,12 @@ export function Chatbot({ isFloating = false, context }: ChatbotProps) {
     scrollToBottom();
   }, [messages]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev: Message[]) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
@@ -51,7 +54,7 @@ export function Chatbot({ isFloating = false, context }: ChatbotProps) {
             role: "system",
             content: context || "You are a helpful assistant for Ramblin' Returns, a financial analysis and investment platform. Help users understand how to use the platform and answer their questions about financial analysis and investments."
           },
-          ...messages.map(msg => ({ role: msg.role, content: msg.content })),
+          ...messages.map((msg: Message) => ({ role: msg.role, content: msg.content })),
           { role: 'user', content: input }
         ],
         temperature: 0.7,
@@ -62,10 +65,10 @@ export function Chatbot({ isFloating = false, context }: ChatbotProps) {
         role: 'assistant',
         content: completion.choices[0].message.content || 'Sorry, I could not process your request.'
       };
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev: Message[]) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error getting response:', error);
-      setMessages(prev => [...prev, {
+      setMessages((prev: Message[]) => [...prev, {
         role: 'assistant',
         content: 'Sorry, there was an error processing your request. Please try again.'
       }]);
