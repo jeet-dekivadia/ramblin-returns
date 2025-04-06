@@ -49,6 +49,7 @@ export async function POST(req: Request) {
       });
     } catch (openaiError) {
       console.error('OpenAI API error:', openaiError);
+      // Ensure we return a properly formatted JSON response even for errors
       return NextResponse.json(
         { error: 'OpenAI API error: ' + (openaiError instanceof Error ? openaiError.message : 'Unknown error') },
         { status: 500 }
@@ -57,25 +58,29 @@ export async function POST(req: Request) {
 
     const responseContent = completion.choices[0]?.message?.content;
     if (!responseContent) {
-      throw new Error('Empty response from OpenAI');
+      return NextResponse.json(
+        { error: 'Empty response from OpenAI' },
+        { status: 500 }
+      );
     }
 
-    const cleanedContent = cleanResponse(responseContent);
-
-    // Ensure the response is valid JSON
     try {
+      const cleanedContent = cleanResponse(responseContent);
+      
+      // Always return a properly formatted JSON response
       return NextResponse.json({
         content: cleanedContent
       });
-    } catch (jsonError) {
-      console.error('JSON parsing error:', jsonError);
+    } catch (error) {
+      console.error('Error processing response:', error);
       return NextResponse.json(
-        { error: 'Failed to format response: ' + (jsonError instanceof Error ? jsonError.message : 'Unknown error') },
+        { error: 'Failed to process response: ' + (error instanceof Error ? error.message : 'Unknown error') },
         { status: 500 }
       );
     }
   } catch (error) {
     console.error('Error in chat API:', error);
+    // Ensure we return a properly formatted JSON response for any unhandled errors
     return NextResponse.json(
       { error: 'Failed to process request: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
