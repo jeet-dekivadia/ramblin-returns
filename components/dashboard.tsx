@@ -4,14 +4,30 @@ import { useState } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  BarChart, Bar,
+  LineChart, Line,
+  PieChart, Pie, Cell,
+  AreaChart, Area,
+  XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
 import { Chatbot } from './chatbot';
 import { extractTextFromPDF, analyzeBankStatement, getInvestmentRecommendations } from '@/lib/utils';
+
+// Custom colors for charts
+const COLORS = ['#FFB547', '#FF7847', '#FF478B', '#8B47FF', '#478BFF', '#47FFB5'];
 
 type Analysis = {
   spendingByCategory: { category: string; amount: number }[];
   monthlySpending: { month: string; amount: number }[];
-  topMerchants: { merchant: string; amount: number }[];
+  weeklyAverages: { week: string; amount: number }[];
+  topMerchants: { merchant: string; amount: number; frequency: number }[];
+  recurringPayments: { merchant: string; amount: number; frequency: string }[];
+  incomeVsExpenses: { totalIncome: number; totalExpenses: number; savings: number };
+  transactionPatterns: { pattern: string; frequency: number }[];
+  insights: string[];
+  savingsSuggestions: string[];
 };
 
 type InvestmentRecommendation = {
@@ -36,48 +52,17 @@ export function Dashboard() {
     setError(null);
 
     try {
-      // First try to extract text from PDF
-      let text;
-      try {
-        text = await extractTextFromPDF(selectedFile);
-      } catch (err) {
-        console.error('PDF extraction error:', err);
-        setError('Failed to extract text from PDF. Please ensure your file is a valid bank statement.');
-        setIsLoading(false);
-        return;
-      }
+      const text = await extractTextFromPDF(selectedFile);
+      const { analysis: statementAnalysis, merchants } = await analyzeBankStatement(text);
+      setAnalysis(statementAnalysis);
 
-      // Then try to analyze the statement
-      let analysisResult;
-      try {
-        analysisResult = await analyzeBankStatement(text);
-        if (!analysisResult?.analysis) {
-          throw new Error('Invalid analysis response');
-        }
-        setAnalysis(analysisResult.analysis);
-
-        // Only try to get investment recommendations if we have merchants
-        if (analysisResult.merchants?.length > 0) {
-          try {
-            const investmentRecs = await getInvestmentRecommendations(analysisResult.merchants);
-            setRecommendations(investmentRecs.recommendations);
-          } catch (err) {
-            console.error('Investment recommendations error:', err);
-            // Don't fail the whole process if investment recommendations fail
-          }
-        }
-      } catch (err) {
-        console.error('Statement analysis error:', err);
-        if (err instanceof Error) {
-          setError(`Failed to analyze bank statement: ${err.message}`);
-        } else {
-          setError('Failed to analyze bank statement. Please ensure your file is a valid bank statement.');
-        }
-        return;
+      if (merchants.length > 0) {
+        const investmentRecs = await getInvestmentRecommendations(merchants);
+        setRecommendations(investmentRecs.recommendations);
       }
     } catch (err) {
-      console.error('General error:', err);
-      setError('An unexpected error occurred. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to analyze bank statement. Please try again.');
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -118,36 +103,199 @@ export function Dashboard() {
       ) : analysis ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
-            <Tabs defaultValue="spending">
-              <TabsList>
+            <Tabs defaultValue="overview">
+              <TabsList className="grid grid-cols-3 gap-4 mb-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="spending">Spending Analysis</TabsTrigger>
                 <TabsTrigger value="investments">Investment Opportunities</TabsTrigger>
               </TabsList>
-              <TabsContent value="spending">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Spending by Category</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={analysis.spendingByCategory}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="category" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="amount" fill="#8884d8" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
+
+              <TabsContent value="overview">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Income vs Expenses Card */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Income vs Expenses</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={[
+                                { name: 'Income', value: analysis.incomeVsExpenses.totalIncome },
+                                { name: 'Expenses', value: analysis.incomeVsExpenses.totalExpenses },
+                                { name: 'Savings', value: analysis.incomeVsExpenses.savings }
+                              ]}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={80}
+                              paddingAngle={5}
+                              dataKey="value"
+                            >
+                              {COLORS.map((color, index) => (
+                                <Cell key={`cell-${index}`} fill={color} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Monthly Trend Card */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Monthly Spending Trend</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={analysis.monthlySpending}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis />
+                            <Tooltip />
+                            <Line type="monotone" dataKey="amount" stroke="#8884d8" />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Weekly Averages Card */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Weekly Spending</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={analysis.weeklyAverages}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="week" />
+                            <YAxis />
+                            <Tooltip />
+                            <Area type="monotone" dataKey="amount" stroke="#82ca9d" fill="#82ca9d" />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Top Merchants Card */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Top Merchants</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={analysis.topMerchants.slice(0, 5)}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="merchant" />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="amount" fill="#8884d8" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
+
+              <TabsContent value="spending">
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Category Breakdown */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Spending by Category</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-96">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={analysis.spendingByCategory}
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={120}
+                              dataKey="amount"
+                              nameKey="category"
+                              label
+                            >
+                              {analysis.spendingByCategory.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Recurring Payments */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Recurring Payments</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {analysis.recurringPayments.map((payment, index) => (
+                          <div key={index} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                            <div>
+                              <p className="font-medium">{payment.merchant}</p>
+                              <p className="text-sm text-gray-500">{payment.frequency}</p>
+                            </div>
+                            <p className="font-bold">${payment.amount.toFixed(2)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Insights and Suggestions */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Spending Insights</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="list-disc pl-4 space-y-2">
+                          {analysis.insights.map((insight, index) => (
+                            <li key={index}>{insight}</li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Savings Suggestions</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="list-disc pl-4 space-y-2">
+                          {analysis.savingsSuggestions.map((suggestion, index) => (
+                            <li key={index}>{suggestion}</li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </TabsContent>
+
               <TabsContent value="investments">
                 <Card>
                   <CardHeader>
                     <CardTitle>Investment Recommendations</CardTitle>
+                    <CardDescription>Based on your spending patterns</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -156,7 +304,13 @@ export function Dashboard() {
                           <CardHeader>
                             <CardTitle>{rec.company}</CardTitle>
                             <CardDescription>
-                              Recommendation: {rec.recommendation.toUpperCase()}
+                              Recommendation: <span className={`font-bold ${
+                                rec.recommendation === 'buy' ? 'text-green-500' :
+                                rec.recommendation === 'sell' ? 'text-red-500' :
+                                'text-yellow-500'
+                              }`}>
+                                {rec.recommendation.toUpperCase()}
+                              </span>
                             </CardDescription>
                           </CardHeader>
                           <CardContent>
@@ -171,7 +325,10 @@ export function Dashboard() {
             </Tabs>
           </div>
           <div>
-            <Chatbot context="You are a financial analyst assistant. Help the user understand their bank statement analysis and provide insights about their spending patterns and potential investment opportunities." />
+            <Chatbot 
+              context="You are a financial analyst assistant. Help the user understand their bank statement analysis and provide insights about their spending patterns and potential investment opportunities." 
+              analysis={analysis}
+            />
           </div>
         </div>
       ) : (
@@ -180,7 +337,7 @@ export function Dashboard() {
         </div>
       )}
 
-      <Chatbot isFloating />
+      <Chatbot isFloating analysis={analysis} />
     </div>
   );
 } 
