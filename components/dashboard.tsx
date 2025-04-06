@@ -36,17 +36,48 @@ export function Dashboard() {
     setError(null);
 
     try {
-      const text = await extractTextFromPDF(selectedFile);
-      const { analysis: statementAnalysis, merchants } = await analyzeBankStatement(text);
-      setAnalysis(statementAnalysis);
+      // First try to extract text from PDF
+      let text;
+      try {
+        text = await extractTextFromPDF(selectedFile);
+      } catch (err) {
+        console.error('PDF extraction error:', err);
+        setError('Failed to extract text from PDF. Please ensure your file is a valid bank statement.');
+        setIsLoading(false);
+        return;
+      }
 
-      if (merchants.length > 0) {
-        const investmentRecs = await getInvestmentRecommendations(merchants);
-        setRecommendations(investmentRecs.recommendations);
+      // Then try to analyze the statement
+      let analysisResult;
+      try {
+        analysisResult = await analyzeBankStatement(text);
+        if (!analysisResult?.analysis) {
+          throw new Error('Invalid analysis response');
+        }
+        setAnalysis(analysisResult.analysis);
+
+        // Only try to get investment recommendations if we have merchants
+        if (analysisResult.merchants?.length > 0) {
+          try {
+            const investmentRecs = await getInvestmentRecommendations(analysisResult.merchants);
+            setRecommendations(investmentRecs.recommendations);
+          } catch (err) {
+            console.error('Investment recommendations error:', err);
+            // Don't fail the whole process if investment recommendations fail
+          }
+        }
+      } catch (err) {
+        console.error('Statement analysis error:', err);
+        if (err instanceof Error) {
+          setError(`Failed to analyze bank statement: ${err.message}`);
+        } else {
+          setError('Failed to analyze bank statement. Please ensure your file is a valid bank statement.');
+        }
+        return;
       }
     } catch (err) {
-      setError('Failed to analyze bank statement. Please try again.');
-      console.error(err);
+      console.error('General error:', err);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

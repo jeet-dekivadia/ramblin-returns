@@ -31,11 +31,17 @@ export const analyzeBankStatement = async (text: string) => {
     body: JSON.stringify({ text }),
   });
   
+  const data = await response.json();
+  
   if (!response.ok) {
-    throw new Error('Failed to analyze bank statement');
+    throw new Error(data.error || 'Failed to analyze bank statement');
   }
   
-  return response.json();
+  if (!data.analysis || typeof data.analysis !== 'object') {
+    throw new Error('Invalid analysis response from server');
+  }
+
+  return data;
 };
 
 export const getInvestmentRecommendations = async (merchants: string[]) => {
