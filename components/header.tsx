@@ -18,11 +18,32 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  // Scroll to section functionality
+  const scrollToSection = (id: string) => {
+    setMobileMenuOpen(false);
+    const section = document.getElementById(id);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+  
+  // Handle start ramble click - shows upload modal
+  const handleStartRamble = () => {
+    // Trigger the upload modal in hero section by simulating a click on the upload button
+    const uploadButton = document.querySelector('[data-upload-trigger="true"]');
+    if (uploadButton instanceof HTMLElement) {
+      uploadButton.click();
+    } else {
+      // Fallback - scroll to dashboard section
+      scrollToSection("dashboard");
+    }
+  };
+
   const navItems = [
-    { name: "Product Tour", href: "#product-tour" },
-    { name: "Dashboard", href: "#dashboard" },
-    { name: "URL Security", href: "#url-security" },
-    { name: "Technology", href: "#technology" },
+    { name: "Product Tour", href: "#product-tour", id: "product-tour" },
+    { name: "Dashboard", href: "#dashboard", id: "dashboard" },
+    { name: "URL Security", href: "#url-security", id: "url-security" },
+    { name: "Technology", href: "#technology", id: "technology" },
   ]
 
   return (
@@ -42,7 +63,10 @@ export function Header() {
             transition={{ delay: 0.2 }}
             className="flex items-center"
           >
-            <a href="#" className="flex items-center">
+            <a href="#" onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }} className="flex items-center">
               <div className="flex items-center">
                 <div className="bg-gradient-to-r from-gt-gold to-gs-blue text-white font-bold text-xl w-8 h-8 rounded-md flex items-center justify-center mr-2">
                   R
@@ -65,6 +89,10 @@ export function Header() {
               <a
                 key={item.name}
                 href={item.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToSection(item.id);
+                }}
                 className="text-sm font-medium hover:text-gt-gold transition-colors relative group"
               >
                 {item.name}
@@ -73,7 +101,10 @@ export function Header() {
             ))}
 
             <div className="relative group">
-              <Button className="bg-gradient-to-r from-gt-gold to-gs-blue hover:from-gt-gold/90 hover:to-gs-blue/90 text-white">
+              <Button 
+                onClick={handleStartRamble}
+                className="bg-gradient-to-r from-gt-gold to-gs-blue hover:from-gt-gold/90 hover:to-gs-blue/90 text-white"
+              >
                 <span className="flex items-center">
                   Start Your Ramble
                   <ChevronDown className="ml-2 h-4 w-4 transition-transform group-hover:rotate-180" />
@@ -81,13 +112,34 @@ export function Header() {
               </Button>
               <div className="absolute right-0 mt-2 w-48 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300">
                 <div className="bg-white dark:bg-gray-900 rounded-md shadow-lg overflow-hidden">
-                  <a href="#" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <a 
+                    href="#" 
+                    className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleStartRamble();
+                    }}
+                  >
                     Upload Statement
                   </a>
-                  <a href="#" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <a 
+                    href="#" 
+                    className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection("dashboard");
+                    }}
+                  >
                     Connect Bank
                   </a>
-                  <a href="#" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <a 
+                    href="#" 
+                    className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      alert("Sign up functionality would be implemented here");
+                    }}
+                  >
                     Create Account
                   </a>
                 </div>
@@ -122,14 +174,20 @@ export function Header() {
                 <a
                   key={item.name}
                   href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToSection(item.id);
+                  }}
                   className="block px-3 py-2 text-base font-medium hover:text-gt-gold transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.name}
                 </a>
               ))}
               <div className="pt-2">
-                <Button className="w-full bg-gradient-to-r from-gt-gold to-gs-blue hover:from-gt-gold/90 hover:to-gs-blue/90 text-white">
+                <Button 
+                  className="w-full bg-gradient-to-r from-gt-gold to-gs-blue hover:from-gt-gold/90 hover:to-gs-blue/90 text-white"
+                  onClick={handleStartRamble}
+                >
                   Start Your Ramble
                 </Button>
               </div>
@@ -138,6 +196,6 @@ export function Header() {
         )}
       </AnimatePresence>
     </motion.header>
-  )
+  );
 }
 

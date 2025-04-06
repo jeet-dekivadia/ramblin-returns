@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Upload, CreditCard, Shield, TrendingUp, ChevronDown, Heart } from "lucide-react"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { useRouter } from "next/navigation"
 
 export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLDivElement>(null)
   const logoBeltRef = useRef<HTMLDivElement>(null)
   const [showModal, setShowModal] = useState(false)
-
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const router = useRouter()
+  
   // Register ScrollTrigger plugin
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -144,6 +147,32 @@ export function HeroSection() {
     },
   ]
 
+  // Scrolling functionality for navigation
+  const scrollToSection = (id: string) => {
+    const section = document.getElementById(id);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+  
+  // File upload functionality
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+  
+  const handleFileUpload = () => {
+    if (selectedFile) {
+      // In a real app this would process the file
+      alert(`Processing file: ${selectedFile.name}`);
+      setShowModal(false);
+      scrollToSection("dashboard");
+    } else {
+      alert("Please select a file first");
+    }
+  };
+
   return (
     <motion.div ref={containerRef} className="relative min-h-screen overflow-hidden">
       {/* Animated Background */}
@@ -205,6 +234,7 @@ export function HeroSection() {
             {/* CTA Buttons */}
             <div className="reveal-text flex flex-col sm:flex-row gap-4 mb-8">
               <Button
+                data-upload-trigger="true"
                 onClick={() => setShowModal(true)}
                 className="group relative overflow-hidden bg-gradient-to-r from-gt-gold to-gs-blue hover:from-gt-gold/90 hover:to-gs-blue/90 text-white px-8 py-6 text-lg"
               >
@@ -217,6 +247,7 @@ export function HeroSection() {
 
               <Button
                 variant="outline"
+                onClick={() => scrollToSection("url-security")}
                 className="border-2 border-gt-gold text-gt-gold hover:bg-gt-gold/10 px-8 py-6 text-lg"
               >
                 <Shield className="mr-2 h-5 w-5" />
@@ -263,9 +294,7 @@ export function HeroSection() {
                 repeatType: "loop",
               }}
               className="reveal-text cursor-pointer"
-              onClick={() => {
-                document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })
-              }}
+              onClick={() => scrollToSection("features")}
             >
               <ChevronDown className="h-8 w-8 text-gray-400 dark:text-gray-600" />
             </motion.div>
@@ -323,23 +352,43 @@ export function HeroSection() {
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Drag and drop your bank statement or click to browse files
               </p>
-
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 mb-6 text-center hover:border-gt-gold dark:hover:border-gt-gold transition-colors cursor-pointer">
-                <Upload className="h-10 w-10 mx-auto mb-4 text-gray-400 dark:text-gray-600" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">Supported formats: PDF, CSV, OFX</p>
-              </div>
+              
+              <label 
+                htmlFor="file-upload-hero"
+                className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 mb-6 text-center hover:border-gt-gold dark:hover:border-gt-gold transition-colors cursor-pointer block"
+              >
+                <input 
+                  type="file" 
+                  id="file-upload-hero" 
+                  className="hidden" 
+                  accept=".pdf,.csv,.ofx" 
+                  onChange={handleFileChange}
+                />
+                <Upload className={`h-10 w-10 mx-auto mb-4 ${selectedFile ? 'text-gt-gold' : 'text-gray-400 dark:text-gray-600'}`} />
+                {selectedFile ? (
+                  <p className="font-medium text-gt-gold">{selectedFile.name}</p>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Supported formats: PDF, CSV, OFX</p>
+                )}
+              </label>
 
               <div className="flex justify-end gap-3">
                 <Button variant="outline" onClick={() => setShowModal(false)}>
                   Cancel
                 </Button>
-                <Button className="bg-gt-gold hover:bg-gt-gold/90 text-white">Upload & Analyze</Button>
+                <Button 
+                  className="bg-gt-gold hover:bg-gt-gold/90 text-white"
+                  onClick={handleFileUpload}
+                  disabled={!selectedFile}
+                >
+                  Upload & Analyze
+                </Button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
     </motion.div>
-  )
+  );
 }
 

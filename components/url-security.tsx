@@ -8,153 +8,197 @@ import { Input } from "@/components/ui/input"
 import { Shield, CheckCircle, AlertTriangle, Link } from "lucide-react"
 
 export function UrlSecurity() {
-  const [url, setUrl] = useState("")
-  const [isChecking, setIsChecking] = useState(false)
-  const [result, setResult] = useState<null | { safe: boolean; original?: string; message: string }>(null)
+  const [url, setUrl] = useState<string>("")
+  const [result, setResult] = useState<null | {
+    isSafe: boolean;
+    score: number;
+    message: string;
+  }>(null)
+  const [isChecking, setIsChecking] = useState<boolean>(false)
 
   const checkUrl = () => {
-    if (!url) return
-
-    setIsChecking(true)
-
-    // Simulate API call to check URL
+    if (!url) {
+      alert("Please enter a URL to check");
+      return;
+    }
+    
+    setIsChecking(true);
+    
+    // Simulate API call with setTimeout
     setTimeout(() => {
-      if (url.includes("amaz0n") || url.includes("paypa1")) {
-        setResult({
-          safe: false,
-          original: url,
-          message:
-            "This appears to be a phishing attempt. The domain is suspicious and doesn't match the official website.",
-        })
-      } else if (url.includes("bit.ly") || url.includes("tinyurl")) {
-        setResult({
-          safe: true,
-          original: "https://www.example.com/legitimate-page",
-          message: "This shortened URL redirects to a legitimate website.",
-        })
-      } else {
-        setResult({
-          safe: true,
-          message: "This URL appears to be safe.",
-        })
-      }
-
-      setIsChecking(false)
-    }, 1500)
-  }
+      // Simple phishing detection logic
+      const phishingKeywords = ['amaz0n', 'paypa1', 'secure', 'verify', 'login', 'bit.ly'];
+      const isSuspicious = phishingKeywords.some(keyword => url.toLowerCase().includes(keyword));
+      
+      const isSafe = !isSuspicious;
+      const score = isSafe ? Math.floor(Math.random() * 20) + 80 : Math.floor(Math.random() * 30) + 10;
+      
+      setResult({
+        isSafe,
+        score,
+        message: isSafe 
+          ? "This URL appears to be legitimate. You can proceed safely." 
+          : "Warning! This URL shows signs of being a phishing attempt. Do not enter personal information."
+      });
+      
+      setIsChecking(false);
+    }, 1500);
+  };
 
   return (
-    <section id="url-security" className="py-20 bg-white dark:bg-gray-950">
+    <section id="url-security" className="py-20 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 200, damping: 15 }}
-              className="inline-block bg-gt-navy/10 dark:bg-gt-navy/20 p-4 rounded-full mb-6"
-            >
-              <Shield className="h-12 w-12 text-gt-navy" />
-            </motion.div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Protect Yourself from Phishing</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              Advanced security that blocks scams and protects your financial data
-            </p>
-          </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-10"
+        >
+          <Shield className="h-12 w-12 text-gt-gold mx-auto mb-4" />
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Phishing URL Detector</h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Check if a URL is legitimate or a phishing attempt before clicking on it. Protect your financial data from scams.
+          </p>
+        </motion.div>
 
-          <Card className="overflow-hidden border-2 border-gray-200 dark:border-gray-800">
-            <CardContent className="p-6">
-              <div className="mb-6">
-                <label htmlFor="url-input" className="block text-sm font-medium mb-2">
-                  Enter a URL to check
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    id="url-input"
-                    type="url"
-                    placeholder="https://example.com or shortened URL"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={checkUrl}
-                    disabled={!url || isChecking}
-                    className="bg-gt-navy hover:bg-gt-navy/90 text-white"
-                  >
-                    {isChecking ? "Checking..." : "Check URL"}
-                  </Button>
-                </div>
-              </div>
-
-              {result && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-lg ${
-                    result.safe
-                      ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900"
-                      : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900"
-                  }`}
-                >
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 mt-0.5">
-                      {result.safe ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <AlertTriangle className="h-5 w-5 text-red-500" />
-                      )}
-                    </div>
-                    <div className="ml-3">
-                      <h3
-                        className={`text-sm font-medium ${
-                          result.safe ? "text-green-800 dark:text-green-200" : "text-red-800 dark:text-red-200"
-                        }`}
-                      >
-                        {result.safe ? "URL is safe" : "Potential security risk"}
-                      </h3>
-                      <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                        <p>{result.message}</p>
-
-                        {result.original && (
-                          <div className="mt-2 flex items-center">
-                            <Link className="h-4 w-4 mr-1 text-gray-500" />
-                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                              {result.original}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <Card className="overflow-hidden shadow-lg">
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">URL Safety Check</h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      Enter a URL below to scan it for potential security threats.
+                    </p>
+                    <div className="flex space-x-2">
+                      <Input
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder="https://example.com"
+                        className="flex-1"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && url) {
+                            checkUrl();
+                          }
+                        }}
+                      />
+                      <Button onClick={checkUrl} disabled={isChecking || !url} className="bg-gt-navy hover:bg-gt-navy/90 text-white">
+                        {isChecking ? "Checking..." : "Check"}
+                      </Button>
                     </div>
                   </div>
-                </motion.div>
-              )}
 
-              <div className="mt-6 bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                <h4 className="text-sm font-medium mb-2">Try these examples:</h4>
+                  {result && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={`p-4 rounded-lg ${
+                        result.isSafe ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"
+                      }`}
+                    >
+                      <div className="flex items-center mb-2">
+                        {result.isSafe ? (
+                          <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                        ) : (
+                          <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+                        )}
+                        <h4 className="font-bold">
+                          {result.isSafe ? "Safe URL" : "Suspicious URL"}
+                        </h4>
+                      </div>
+                      <p className="text-sm">{result.message}</p>
+                      <div className="mt-3">
+                        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full ${
+                              result.isSafe ? "bg-green-500" : "bg-red-500"
+                            }`}
+                            style={{ width: `${result.score}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between mt-1 text-xs text-gray-500">
+                          <span>Unsafe</span>
+                          <span>Safety Score: {result.score}%</span>
+                          <span>Safe</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Card className="overflow-hidden shadow-lg">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold mb-4">Common Phishing Examples</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Click on any of these examples to check their safety:
+                </p>
                 <div className="space-y-2">
                   <button
-                    onClick={() => setUrl("https://amaz0n-secure.net/login")}
+                    onClick={() => {
+                      setUrl("https://amaz0n-secure.net/login");
+                      setTimeout(() => checkUrl(), 100);
+                    }}
                     className="text-sm text-gt-gold hover:underline block"
                   >
                     https://amaz0n-secure.net/login
                   </button>
                   <button
-                    onClick={() => setUrl("https://bit.ly/3xR5tY7")}
+                    onClick={() => {
+                      setUrl("https://bit.ly/3xR5tY7");
+                      setTimeout(() => checkUrl(), 100);
+                    }}
                     className="text-sm text-gt-gold hover:underline block"
                   >
                     https://bit.ly/3xR5tY7
                   </button>
                   <button
-                    onClick={() => setUrl("https://paypa1-verify.com/account")}
+                    onClick={() => {
+                      setUrl("https://paypa1-verify.com/account");
+                      setTimeout(() => checkUrl(), 100);
+                    }}
                     className="text-sm text-gt-gold hover:underline block"
                   >
                     https://paypa1-verify.com/account
                   </button>
+                  <button
+                    onClick={() => {
+                      setUrl("https://www.google.com");
+                      setTimeout(() => checkUrl(), 100);
+                    }}
+                    className="text-sm text-gt-gold hover:underline block"
+                  >
+                    https://www.google.com
+                  </button>
+                  <button
+                    onClick={() => {
+                      setUrl("https://github.com");
+                      setTimeout(() => checkUrl(), 100);
+                    }}
+                    className="text-sm text-gt-gold hover:underline block"
+                  >
+                    https://github.com
+                  </button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </div>
     </section>

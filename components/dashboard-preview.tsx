@@ -22,6 +22,66 @@ export function DashboardPreview() {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: false, amount: 0.2 })
   const [activeTab, setActiveTab] = useState("overview")
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [urlInput, setUrlInput] = useState("")
+  const [connectingAccounts, setConnectingAccounts] = useState(false)
+
+  // Scroll to section function
+  const scrollToSection = (id: string) => {
+    const section = document.getElementById(id);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  // Simulate refreshing data
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1500);
+  };
+
+  // Handle URL check in security tab
+  const handleCheckUrl = () => {
+    if (!urlInput) {
+      alert("Please enter a URL to check");
+      return;
+    }
+    
+    setIsVerifying(true);
+    setTimeout(() => {
+      setIsVerifying(false);
+      // Scroll to actual URL security section for more comprehensive check
+      scrollToSection("url-security");
+    }, 1000);
+  };
+
+  // Simulate connecting accounts
+  const handleConnectAccounts = () => {
+    setConnectingAccounts(true);
+    setTimeout(() => {
+      setConnectingAccounts(false);
+      // Show success message
+      alert("Demo Mode: Accounts would be connected in a real app");
+    }, 1500);
+  };
+
+  // Simulating upload statement functionality
+  const handleUploadStatement = () => {
+    // Create a hidden file input and trigger it
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf,.csv,.ofx';
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files && target.files.length > 0) {
+        alert(`Selected file: ${target.files[0].name}\nIn a real app, this would be processed.`);
+      }
+    };
+    input.click();
+  };
 
   // Sample data for the dashboard
   const spendingData = [
@@ -131,9 +191,11 @@ export function DashboardPreview() {
                 <Button
                   size="sm"
                   variant="outline"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
                   className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                 >
-                  Refresh
+                  {isRefreshing ? "Refreshing..." : "Refresh"}
                 </Button>
               </div>
             </div>
@@ -208,7 +270,8 @@ export function DashboardPreview() {
                           {investmentOpportunities.map((item, index) => (
                             <div
                               key={index}
-                              className="flex items-center p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                              className="flex items-center p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+                              onClick={() => alert(`You would invest in ${item.company} (${item.ticker}) stock with potential returns of ${item.potential}`)}
                             >
                               <div className="mr-4 p-2 bg-gray-100 dark:bg-gray-800 rounded-full">{item.logo}</div>
                               <div className="flex-1">
@@ -241,7 +304,12 @@ export function DashboardPreview() {
                     <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
                       The only app that turns your dining dollars into Wall Street gains
                     </p>
-                    <Button className="bg-gt-gold hover:bg-gt-gold/90 text-white">Upload Statement</Button>
+                    <Button 
+                      className="bg-gt-gold hover:bg-gt-gold/90 text-white"
+                      onClick={handleUploadStatement}
+                    >
+                      Upload Statement
+                    </Button>
                   </div>
                 </TabsContent>
 
@@ -252,7 +320,13 @@ export function DashboardPreview() {
                     <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
                       Goldman-grade investing meets FanDuel-style rewards
                     </p>
-                    <Button className="bg-gs-blue hover:bg-gs-blue/90 text-white">Connect Accounts</Button>
+                    <Button 
+                      className="bg-gs-blue hover:bg-gs-blue/90 text-white"
+                      onClick={handleConnectAccounts}
+                      disabled={connectingAccounts}
+                    >
+                      {connectingAccounts ? "Connecting..." : "Connect Accounts"}
+                    </Button>
                   </div>
                 </TabsContent>
 
@@ -299,7 +373,12 @@ export function DashboardPreview() {
                       ))}
                     </div>
                     <div className="mt-6 text-center">
-                      <Button className="bg-gt-gold hover:bg-gt-gold/90 text-white">View Full Leaderboard</Button>
+                      <Button 
+                        className="bg-gt-gold hover:bg-gt-gold/90 text-white"
+                        onClick={() => alert("Full leaderboard would be displayed in a real app")}
+                      >
+                        View Full Leaderboard
+                      </Button>
                     </div>
                   </div>
                 </TabsContent>
@@ -315,9 +394,17 @@ export function DashboardPreview() {
                       <input
                         type="text"
                         placeholder="https://example.com"
+                        value={urlInput}
+                        onChange={(e) => setUrlInput(e.target.value)}
                         className="flex-1 px-4 py-2 rounded-l-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-gt-gold dark:bg-gray-800"
                       />
-                      <Button className="bg-gt-navy hover:bg-gt-navy/90 text-white rounded-l-none">Check URL</Button>
+                      <Button 
+                        onClick={handleCheckUrl}
+                        disabled={isVerifying || !urlInput}
+                        className="bg-gt-navy hover:bg-gt-navy/90 text-white rounded-l-none"
+                      >
+                        {isVerifying ? "Checking..." : "Check URL"}
+                      </Button>
                     </div>
                   </div>
                 </TabsContent>
@@ -331,13 +418,24 @@ export function DashboardPreview() {
         </motion.div>
 
         <div className="text-center mt-12">
-          <Button className="bg-gradient-to-r from-gt-gold to-gs-blue hover:from-gt-gold/90 hover:to-gs-blue/90 text-white px-8 py-6 text-lg">
+          <Button 
+            className="bg-gradient-to-r from-gt-gold to-gs-blue hover:from-gt-gold/90 hover:to-gs-blue/90 text-white px-8 py-6 text-lg"
+            onClick={() => {
+              // Create a hidden upload trigger in the hero section
+              const uploadTrigger = document.querySelector('[data-upload-trigger="true"]');
+              if (uploadTrigger instanceof HTMLElement) {
+                uploadTrigger.click();
+              } else {
+                alert("Start by uploading your bank statement");
+              }
+            }}
+          >
             Get Started Now
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </div>
     </section>
-  )
+  );
 }
 

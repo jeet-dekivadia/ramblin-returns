@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { motion, useInView } from "framer-motion"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,37 +9,75 @@ import { PieChartIcon, TrendingUp, Shield, Bot, Coffee, ShoppingBag, Car } from 
 
 export function ProductTour() {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: false, amount: 0.3 })
-
-  // Spending breakdown data
+  const isInView = useInView(ref, { once: false, amount: 0.2 })
+  const [aiQuestion, setAiQuestion] = useState("")
+  const [isAskingAi, setIsAskingAi] = useState(false)
+  const [aiResponses, setAiResponses] = useState<string[]>([])
+  
+  // Sample data for display
   const spendingData = [
     { name: "Coffee", value: 120, color: "#B3A369" },
-    { name: "Shopping", value: 300, color: "#2563EB" },
-    { name: "Transport", value: 200, color: "#10B981" },
-    { name: "Food", value: 250, color: "#F59E0B" },
-    { name: "Entertainment", value: 150, color: "#8B5CF6" },
+    { name: "Shopping", value: 450, color: "#0033A0" },
+    { name: "Transport", value: 200, color: "#003057" },
+    { name: "Food", value: 350, color: "#10B981" },
+    { name: "Entertainment", value: 180, color: "#8B5CF6" },
   ]
 
-  // Investment engine demo data
   const investmentData = [
-    { company: "Starbucks", spend: 120, ticker: "SBUX", growth: "+8.2%" },
-    { company: "Amazon", spend: 300, ticker: "AMZN", growth: "+12.5%" },
-    { company: "Uber", spend: 200, ticker: "UBER", growth: "+5.7%" },
+    { company: "Starbucks", ticker: "SBUX", spend: 120, growth: "+12.4%" },
+    { company: "Amazon", ticker: "AMZN", spend: 320, growth: "+8.7%" },
+    { company: "Uber", ticker: "UBER", spend: 175, growth: "+15.2%" },
   ]
 
-  // Fraud detection demo data
   const fraudData = [
-    { url: "starbucks.com", safety: 95, status: "Safe" },
-    { url: "amaz0n-secure.net", safety: 15, status: "Dangerous" },
-    { url: "paypa1-verify.com", safety: 5, status: "Dangerous" },
+    { url: "paypa1-secure.net", status: "Risky", safety: 25 },
+    { url: "www.amazon.com", status: "Safe", safety: 95 },
+    { url: "bit.ly/3xR5tY7", status: "Risky", safety: 30 },
   ]
 
-  // AI Coach tips
   const aiTips = [
-    "Hey Rambler! I noticed you spend $120 on coffee monthly. Investing just half could yield $1,800+ in 5 years!",
-    "Your Amazon spending increased 15% this month. Want to set a budget alert?",
-    "Great job on reducing food delivery costs! You've saved $45 this month.",
+    "Your coffee spending is 20% higher than last month. Consider using a reusable mug for discounts.",
+    "Based on your shopping patterns, investing 10% in AMZN could yield 12% annual returns.",
+    "You're spending more on ride-sharing than 80% of users. Consider public transit to save $45/month.",
   ]
+
+  // Scroll to section functionality
+  const scrollToSection = (id: string) => {
+    const section = document.getElementById(id);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+  
+  // Handle AI chat question
+  const handleAiQuestion = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!aiQuestion.trim()) return;
+    
+    setIsAskingAi(true);
+    
+    // Simulate AI response
+    setTimeout(() => {
+      // Generate a contextual response based on the question
+      let response = "";
+      
+      const lowerQuestion = aiQuestion.toLowerCase();
+      if (lowerQuestion.includes("invest") || lowerQuestion.includes("stock") || lowerQuestion.includes("market")) {
+        response = "Based on your spending at Starbucks, I recommend considering their stock (SBUX). Their consistent growth and your frequent purchases show you value their products.";
+      } else if (lowerQuestion.includes("save") || lowerQuestion.includes("saving") || lowerQuestion.includes("budget")) {
+        response = "Looking at your transaction history, reducing food delivery services could save you approximately $85/month, which could be automatically invested in your custom portfolio.";
+      } else if (lowerQuestion.includes("scam") || lowerQuestion.includes("phishing") || lowerQuestion.includes("fraud")) {
+        response = "Always verify URLs before entering credentials. Our security scan shows you've encountered 3 potential phishing attempts this month, all successfully blocked.";
+      } else {
+        response = "Great question! Based on your financial profile, I recommend focusing on growth stocks that match your spending patterns. Would you like specific recommendations?";
+      }
+      
+      setAiResponses(prev => [...prev, response]);
+      setAiQuestion("");
+      setIsAskingAi(false);
+    }, 1500);
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -242,6 +280,14 @@ export function ProductTour() {
                         </div>
                       ))}
                     </div>
+                    <div className="mt-6">
+                      <button 
+                        onClick={() => scrollToSection("dashboard")}
+                        className="w-full py-2 bg-gt-gold text-white rounded-md hover:bg-gt-gold/90 transition-colors"
+                      >
+                        Try Spend-to-Invest
+                      </button>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -312,6 +358,14 @@ export function ProductTour() {
                         </div>
                       ))}
                     </div>
+                    <div className="mt-6">
+                      <button 
+                        onClick={() => scrollToSection("url-security")}
+                        className="w-full py-2 bg-gt-navy text-white rounded-md hover:bg-gt-navy/90 transition-colors"
+                      >
+                        Check URL Safety
+                      </button>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -373,14 +427,33 @@ export function ProductTour() {
                           <p className="text-sm">{tip}</p>
                         </motion.div>
                       ))}
+                      {aiResponses.map((response, index) => (
+                        <motion.div
+                          key={`response-${index}`}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.5 }}
+                          className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500"
+                        >
+                          <p className="text-sm">{response}</p>
+                        </motion.div>
+                      ))}
                       <div className="pt-4">
-                        <div className="flex items-center">
+                        <form onSubmit={handleAiQuestion} className="flex items-center">
                           <input
                             type="text"
                             placeholder="Ask your AI coach a question..."
-                            className="flex-1 p-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-gt-gold"
+                            value={aiQuestion}
+                            onChange={(e) => setAiQuestion(e.target.value)}
+                            className="flex-1 p-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-gt-gold dark:bg-gray-800 dark:border-gray-700"
+                            disabled={isAskingAi}
                           />
-                          <button className="bg-gt-gold text-white p-2 rounded-r-md">
+                          <button 
+                            type="submit"
+                            className="bg-gt-gold text-white p-2 rounded-r-md hover:bg-gt-gold/90 disabled:bg-gray-400"
+                            disabled={isAskingAi || !aiQuestion.trim()}
+                          >
+                            {isAskingAi ? "..." : 
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
@@ -395,9 +468,9 @@ export function ProductTour() {
                             >
                               <path d="m22 2-7 20-4-9-9-4Z" />
                               <path d="M22 2 11 13" />
-                            </svg>
+                            </svg>}
                           </button>
-                        </div>
+                        </form>
                       </div>
                     </div>
                   </CardContent>
