@@ -13,9 +13,17 @@ export async function POST(req: Request) {
       );
     }
 
+    // Convert File to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
+    
+    // Convert ArrayBuffer to Buffer
     const buffer = Buffer.from(arrayBuffer);
-    const data = await pdfParse(buffer);
+    
+    // Parse PDF
+    const data = await pdfParse(buffer, {
+      max: 0, // No limit on number of pages
+      pagerender: null // Use default renderer
+    });
     
     return NextResponse.json({ text: data.text });
   } catch (error) {
