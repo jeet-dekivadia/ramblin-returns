@@ -18,10 +18,24 @@ function parseOpenAIResponse(response: string | null | undefined): any {
   cleanResponse = cleanResponse.trim();
   
   try {
+    // Try to parse as JSON first
     return JSON.parse(cleanResponse);
   } catch (error) {
     console.error('Failed to parse response:', cleanResponse);
-    throw new Error('Invalid JSON response from OpenAI');
+    // If JSON parsing fails, try to extract JSON from the text
+    const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (e) {
+        console.error('Failed to parse extracted JSON:', e);
+      }
+    }
+    // If all parsing attempts fail, return a default structure
+    return {
+      isValid: false,
+      reason: "Could not parse the analysis results"
+    };
   }
 }
 
@@ -52,7 +66,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: "You are a financial data analyst. First, determine if the provided text appears to be a valid bank statement. Return a JSON object containing { isValid: boolean, reason: string }"
+            content: "You are a financial data analyst. First, determine if the provided text appears to be a valid bank statement. Return ONLY a JSON object with this exact format, nothing else: { \"isValid\": boolean, \"reason\": string }"
           },
           {
             role: "user",
@@ -60,7 +74,8 @@ export async function POST(req: Request) {
           }
         ],
         temperature: 0.3,
-        max_tokens: 500
+        max_tokens: 500,
+        response_format: { type: "json_object" }
       });
 
       const structureCheck = parseOpenAIResponse(structureCompletion.choices[0]?.message?.content);
@@ -79,16 +94,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: `You are a financial analyst. Analyze the bank statement and provide a detailed analysis with the following data points:
-            1. Spending by category (with specific amounts)
-            2. Monthly spending trends
-            3. Top merchants by transaction volume
-            4. Detailed transaction patterns
-            5. Weekly spending averages
-            6. Income vs expenses
-            7. Recurring payments
-            
-            Return the analysis as a JSON object with this structure:
+            content: `You are a financial analyst. Analyze the bank statement and provide a detailed analysis. Return ONLY a JSON object with this exact format, nothing else:
             {
               "spendingByCategory": [{ "category": string, "amount": number }],
               "monthlySpending": [{ "month": string, "amount": number }],
@@ -107,7 +113,8 @@ export async function POST(req: Request) {
           }
         ],
         temperature: 0.7,
-        max_tokens: 1500
+        max_tokens: 1500,
+        response_format: { type: "json_object" }
       });
 
       const analysis = parseOpenAIResponse(analysisCompletion.choices[0]?.message?.content);
@@ -118,7 +125,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: "Extract a list of merchants from the bank statement that are likely to be publicly traded companies. Return a JSON object with format: { \"companies\": string[] }"
+            content: "Extract a list of merchants from the bank statement that are likely to be publicly traded companies. Return ONLY a JSON object with this exact format, nothing else: { \"companies\": string[] }"
           },
           {
             role: "user",
@@ -126,7 +133,8 @@ export async function POST(req: Request) {
           }
         ],
         temperature: 0.3,
-        max_tokens: 500
+        max_tokens: 500,
+        response_format: { type: "json_object" }
       });
 
       const merchantData = parseOpenAIResponse(merchantCompletion.choices[0]?.message?.content);
@@ -139,14 +147,14 @@ export async function POST(req: Request) {
     } catch (apiError) {
       console.error('OpenAI API error:', apiError);
       return NextResponse.json(
-        { error: 'Error communicating with OpenAI API: ' + (apiError instanceof Error ? apiError.message : 'Unknown error') },
+        { error: 'Error analyzing bank statement: ' + (apiError instanceof Error ? apiError.message : 'Unknown error') },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('Error analyzing bank statement:', error);
+    console.error('Error in bank statement analysis:', error);
     return NextResponse.json(
-      { error: 'Failed to analyze bank statement: ' + (error instanceof Error ? error.message : 'Unknown error') },
+      { error: 'Failed to process bank statement: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     );
   }
