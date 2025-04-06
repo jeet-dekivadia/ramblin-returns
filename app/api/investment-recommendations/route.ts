@@ -37,43 +37,38 @@ export async function POST(req: Request) {
       return new Response('No valid merchants provided', { status: 400 });
     }
 
+    // Limit to top 3 merchants to reduce processing time
+    const topMerchants = merchants.slice(0, 3);
+
     try {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini-2024-07-18",
         messages: [
           {
             role: "system",
-            content: `Analyze these companies and return a JSON array with this exact format:
-            [
-              {
-                "company": string,
-                "analysis": string,
-                "recommendation": "buy" | "hold" | "sell"
-              }
-            ]
-            Keep each analysis brief (max 2 sentences) and focus on key business metrics.`
+            content: "You are a financial advisor. Analyze these companies and provide very brief investment insights."
           },
           {
             role: "user",
-            content: JSON.stringify(merchants)
+            content: `Provide a quick analysis for these companies: ${topMerchants.join(", ")}`
           }
         ],
         temperature: 0.3,
-        max_tokens: 500,
-        response_format: { type: "json_object" }
+        max_tokens: 250
       });
 
-      const recommendations = parseOpenAIResponse(completion.choices[0]?.message?.content);
+      const content = completion.choices[0]?.message?.content || '';
 
-      if (!Array.isArray(recommendations)) {
-        throw new Error('Invalid recommendations format');
-      }
-
-      return NextResponse.json({ recommendations });
+      return new Response(content, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      });
     } catch (apiError) {
       console.error('OpenAI API error:', apiError);
       return new Response(
-        'Error generating recommendations: ' + (apiError instanceof Error ? apiError.message : 'Unknown error'),
+        'Error analyzing companies: ' + (apiError instanceof Error ? apiError.message : 'Unknown error'),
         { status: 500 }
       );
     }

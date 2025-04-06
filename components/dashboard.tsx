@@ -57,8 +57,29 @@ export function Dashboard() {
       setAnalysis(statementAnalysis);
 
       if (merchants.length > 0) {
-        const investmentRecs = await getInvestmentRecommendations(merchants);
-        setRecommendations(investmentRecs.recommendations);
+        try {
+          const response = await fetch('/api/investment-recommendations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ merchants }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to get investment recommendations');
+          }
+
+          const recommendationsText = await response.text();
+          setRecommendations([{
+            company: 'Investment Insights',
+            analysis: recommendationsText,
+            recommendation: 'info'
+          }]);
+        } catch (recError) {
+          console.error('Error getting recommendations:', recError);
+          setError('Failed to get investment recommendations');
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to analyze bank statement. Please try again.');
